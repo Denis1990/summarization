@@ -194,16 +194,6 @@ public class Indexer {
         return true;
     }
 
-
-    public void indexDocument(final File file) {
-        try {
-            addDocument(file);
-        } catch (IOException e) {
-            this.indexExists = false;
-            e.printStackTrace();
-        }
-    }
-
     public boolean indexExists() {
         return indexExists;
     }

@@ -8,6 +8,7 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
+import ptuxiaki.datastructures.Paragraph;
 import ptuxiaki.utils.SentenceUtils;
 
 import java.io.File;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class TextExtractor {
@@ -192,6 +194,41 @@ public class TextExtractor {
         } else {
             return Collections.emptyList();
         }
+    }
+
+    public List<Paragraph> extractParagraphs() {
+        if (filePath.endsWith(".html")) return Collections.emptyList();
+
+        Pattern parSeparator;
+
+        if (filePath.endsWith(".txt")) {
+            parSeparator = Pattern.compile("\\n\\n");
+        } else {
+            parSeparator = Pattern.compile("\\n");
+        }
+
+        String content;
+        try {
+            content = extractFileContent().toString();
+        } catch (SAXException | TikaException | IOException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+
+        String [] paragraphsBlocks = parSeparator.split(content);
+        List<Paragraph> paragraphs = new ArrayList<>(paragraphsBlocks.length);
+
+        int paragraphCount = 0;
+        for(String p : paragraphsBlocks) {
+            int location = 1; // at least one sentence
+            Paragraph par = new Paragraph(paragraphCount++);
+            for (String s : p.split("\\.")) {
+                par.addSentence(new Paragraph.Sentence(location++, s.hashCode()));
+            }
+            paragraphs.add(par);
+        }
+
+        return paragraphs;
     }
 
     public void setFile(final String filePath) {

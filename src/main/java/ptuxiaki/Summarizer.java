@@ -50,10 +50,17 @@ public class Summarizer {
         }
     }
 
-    private int findMinIndex(Pair[] array, int from, int to) {
+    /**
+     * Returns the smallest index from the range [0, to).
+     * The index corresponds to an array index of the original sentences extracted from the file.
+     * @param array a sorted array of {@link Pair} objects
+     * @param to
+     * @return
+     */
+    private int findMinIndex(final Pair[] array, int to) {
         int min_index = array.length+1;
         int array_pos = -1;
-        for (int i = from; i < to; i++) {
+        for (int i = 0; i < to; i++) {
             if (array[i].index < min_index) {
                 min_index = array[i].index;
                 array_pos = i;
@@ -80,6 +87,8 @@ public class Summarizer {
         double tfIdf[] = new double[size];
         Pair weights[] = new Pair[size];
         for (int i = 0; i < size; i++) {
+            // use log functions to determine importance
+            // see paper B47
             tt[i] = keywords(sentences.get(i), titleWords);
             // this is a problem. 0 indicates the number of the document, in the order it was indexed
             // what is that order i don't know. Maybe alphabetical, maybe by type or size.
@@ -103,9 +112,8 @@ public class Summarizer {
         String summaryFileName = filePath.substring(++bidx, eidx).concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (int i = 0; i < summarySents; i++) {
-                final int idx = findMinIndex(weights, 0, summarySents);
+                final int idx = findMinIndex(weights, summarySents);
                 fos.write(sentences.get(idx)
-                        .concat(System.lineSeparator())
                         .concat(System.lineSeparator())
                         .getBytes(Charset.forName("UTF-8"))
                 );

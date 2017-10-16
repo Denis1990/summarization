@@ -41,8 +41,7 @@ public class SentenceUtils {
         StrBuilder strBuilder = new StrBuilder();
         for (String w : words) {
             if (!STOP_WORDS.contains(w)) {
-                strBuilder.append(stemWord(w));
-                strBuilder.append(" ");
+                strBuilder.append(stemWord(w)).append(" ");
             }
         }
         return strBuilder.toString().trim();

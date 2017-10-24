@@ -9,16 +9,12 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import ptuxiaki.datastructures.Paragraph;
-import ptuxiaki.utils.SentenceUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.BreakIterator;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -85,7 +81,8 @@ public class TextExtractor {
         }
         // add the last sentence of the document if it did not end with a dot char
         sentences.add(content.substring(start));
-        return sentences.stream().filter(s -> !s.isEmpty())
+        return sentences.stream()
+                .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
     }
 
@@ -129,7 +126,9 @@ public class TextExtractor {
             end = iterator.next();
         }
         sentences.add(content.substring(start));
-        return sentences;
+        return sentences.stream()
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 
     private List<String> getSentencesFromTxt() {
@@ -168,12 +167,8 @@ public class TextExtractor {
             }
             end = iterator.next();
         }
-
-        return sentences.stream().filter(s -> !s.isEmpty())
-                .map(SentenceUtils::removeSpecialChars)
-                .map(SentenceUtils::removeTonation)
-                .map(SentenceUtils::replaceSigma)
-                .map(SentenceUtils::removeWhiteSpaces)
+        return sentences.stream()
+                .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
     }
 
@@ -196,16 +191,16 @@ public class TextExtractor {
         }
     }
 
-    public List<Paragraph> extractParagraphs() {
+    /**
+     *
+     * @param sentSize we need it in order to estimate if the document has any paragraphs
+     * @return
+     */
+    public List<Paragraph> extractParagraphs(int sentSize) {
         if (filePath.endsWith(".html")) return Collections.emptyList();
 
-        Pattern parSeparator;
+        Pattern parSeparator = Pattern.compile("\\n");
 
-        if (filePath.endsWith(".txt")) {
-            parSeparator = Pattern.compile("\\n\\n");
-        } else {
-            parSeparator = Pattern.compile("\\n");
-        }
 
         String content;
         try {
@@ -216,14 +211,26 @@ public class TextExtractor {
         }
 
         String [] paragraphsBlocks = parSeparator.split(content);
+        int paragraphcount = (int) Arrays.stream(paragraphsBlocks).filter(s -> !s.isEmpty()).count();
         List<Paragraph> paragraphs = new ArrayList<>(paragraphsBlocks.length);
 
-        int paragraphCount = 0;
+        // 10% of the sentences of the document
+        int delta = Math.round(sentSize * 0.1f);
+
+        // if number_of_sentences - number_of_paragraphs < delta then assume the document has no paragraphs
+        if ((sentSize - paragraphcount) < delta) {
+            System.out.println(filePath + " does not have paragraphs");
+            return Collections.emptyList();
+        }
+
+        int i = 0;
         for(String p : paragraphsBlocks) {
-            int location = 1; // at least one sentence
-            Paragraph par = new Paragraph(paragraphCount++);
-            for (String s : p.split("\\.")) {
-                par.addSentence(new Paragraph.Sentence(location++, s.hashCode()));
+            if (p.isEmpty()) continue;
+            int position = 1; // the position of the sentence inside the paragraph
+            Paragraph par = new Paragraph(i++);
+            List<String> sents = null;
+            for (String s : sents) {
+                par.addSentence(new Paragraph.Sentence(position++, s.hashCode()));
             }
             paragraphs.add(par);
         }

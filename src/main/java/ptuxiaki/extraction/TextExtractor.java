@@ -216,18 +216,18 @@ public class TextExtractor {
     }
 
     public List<String> extractSentences() {
-        if (filePath.endsWith(".html")) return Collections.emptyList();
+        if (filePath.endsWith("html")) return Collections.emptyList();
 
         // TODO: make language configurable?
         iterator = BreakIterator.getWordInstance(Locale.forLanguageTag(LANG_TAG));
 
-        if (filePath.endsWith(".pdf")) {
+        if (filePath.endsWith("pdf")) {
             return getSentencesFromPdf();
-        } else if (filePath.endsWith(".doc") || filePath.endsWith(".docx") || filePath.endsWith(".odt")) {
+        } else if (filePath.endsWith("doc") || filePath.endsWith("docx") || filePath.endsWith("odt")) {
             return getSentencesFromDocx();
-        } else if (filePath.endsWith(".html")) {
+        } else if (filePath.endsWith("html")) {
             return Collections.emptyList();
-        } else if (filePath.endsWith(".txt")) {
+        } else if (filePath.endsWith("txt")) {
             return getSentencesFromTxt();
         } else {
             return Collections.emptyList();

@@ -7,17 +7,13 @@ public class Paragraph {
 
     public static class Sentence {
         /** Location inside the paragraph */
-        int location;
+        public int position;
 
         /** The hashCode value of the sentence. */
-        int sentenceHash;
-
-        public Sentence(int location) {
-            this.location = location;
-        }
+        public int sentenceHash;
 
         public Sentence(int location, int hash) {
-            this.location = location;
+            this.position = location;
             this.sentenceHash = hash;
         }
     }
@@ -34,10 +30,17 @@ public class Paragraph {
         return sentences.add(s);
     }
 
-    public int numberOfParagraphs() {
+    public int numberOfSentences() {
         return sentences.size();
     }
 
+    public Sentence getIthSentence(int i) {
+        return sentences.get(i);
+    }
+
+    public List<Sentence> getSentences() {
+        return sentences;
+    }
 
     public boolean containsSentence(int hash) {
         for (Sentence s : sentences) {
@@ -45,5 +48,9 @@ public class Paragraph {
                 return true;
         }
         return false;
+    }
+
+    public int getSerialNo() {
+        return serialNo;
     }
 }

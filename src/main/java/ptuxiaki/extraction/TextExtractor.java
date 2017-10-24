@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.BreakIterator;
+import java.text.CharacterIterator;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public class TextExtractor {
             if (c == '.' || c == ':') {
                 temp = end-2;
                 // otan exoume suntomografies (υπ., π.χ., ν., αρ.)
-                while (!Character.isWhitespace(content.charAt(temp)) && content.charAt(temp) != '.') {
+                while (temp > 0 && !Character.isWhitespace(content.charAt(temp)) && content.charAt(temp) != '.') {
                     temp--;
                 }
                 if (end - temp > 4) {
@@ -106,7 +107,7 @@ public class TextExtractor {
             if (c == '.' || c == ':') {
                 temp = end-2;
                 // otan exoume suntomografies (υπ., π.χ., ν., αρ.)
-                while (!Character.isWhitespace(content.charAt(temp)) && content.charAt(temp) != '.') {
+                while (temp > 0 && !Character.isWhitespace(content.charAt(temp)) && content.charAt(temp) != '.') {
                     temp--;
                 }
                 if (end - temp > 4) {
@@ -146,11 +147,20 @@ public class TextExtractor {
         int prev = -1;
         int consecutiveNewLines = 0;
         boolean isPossibleSentence = false;
+        int temp;
         while (end != BreakIterator.DONE) {
-            if (content.charAt(end - 1) == '.') {
-                sentences.add(content.substring(start, end).trim());
-                start = end;
-                consecutiveNewLines = 0;
+            char c = content.charAt(end - 1);
+            if (c == '.' || c == ':') {
+                temp = end-2;
+                // otan exoume suntomografies (υπ., π.χ., ν., αρ.)
+                while (temp > 0 && !Character.isWhitespace(content.charAt(temp)) && content.charAt(temp) != '.') {
+                    temp--;
+                }
+                if (end - temp > 4) {
+                    sentences.add(content.substring(start, end).trim());
+                    start = end;
+                    consecutiveNewLines = 0;
+                }
             } else if (content.charAt(end - 1) == '\n') {
                 isPossibleSentence = true;
                 consecutiveNewLines++;
@@ -172,6 +182,39 @@ public class TextExtractor {
                 .collect(Collectors.toList());
     }
 
+    private List<String> getSentencesFromText(String text) {
+
+        iterator = BreakIterator.getSentenceInstance(new Locale("el", "gr"));
+        List<Integer> boundaries = new ArrayList<>();
+        iterator.setText(text);
+        int bound;
+        while((bound = iterator.next()) != BreakIterator.DONE) {
+            int i = bound - 2;
+            while (i > 0 && !Character.isWhitespace(text.charAt(i)))
+                i--;
+            if ((bound - 2) - i < 3)
+                continue;
+
+            boundaries.add(bound);
+        }
+
+        int start = 0;
+        List<String> sentences = new ArrayList<>();
+
+        // if we found no sentence assume the entire text is one sentence.
+        if (boundaries.isEmpty()) {
+            sentences.add(text);
+            return sentences;
+        }
+
+        while (!boundaries.isEmpty()) {
+            int next = boundaries.remove(0);
+            sentences.add(text.substring(start, next));
+            start = next;
+        }
+        return sentences;
+    }
+
     public List<String> extractSentences() {
         if (filePath.endsWith(".html")) return Collections.emptyList();
 
@@ -180,7 +223,7 @@ public class TextExtractor {
 
         if (filePath.endsWith(".pdf")) {
             return getSentencesFromPdf();
-        } else if (filePath.endsWith(".doc") || filePath.endsWith(".docx")) {
+        } else if (filePath.endsWith(".doc") || filePath.endsWith(".docx") || filePath.endsWith(".odt")) {
             return getSentencesFromDocx();
         } else if (filePath.endsWith(".html")) {
             return Collections.emptyList();
@@ -228,8 +271,8 @@ public class TextExtractor {
             if (p.isEmpty()) continue;
             int position = 1; // the position of the sentence inside the paragraph
             Paragraph par = new Paragraph(i++);
-            List<String> sents = null;
-            for (String s : sents) {
+
+            for (String s : getSentencesFromText(p)) {
                 par.addSentence(new Paragraph.Sentence(position++, s.hashCode()));
             }
             paragraphs.add(par);

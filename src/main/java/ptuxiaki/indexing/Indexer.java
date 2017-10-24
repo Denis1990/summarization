@@ -173,8 +173,7 @@ public class Indexer {
 
                 // don't index hidden files for example .directory files on kde dolphin
                 // or files that are not pdf or txt
-                if (f.isHidden() || f.getName().endsWith("lock") ||
-                        !(f.getName().endsWith(".pdf") || f.getName().endsWith(".txt") || f.getName().endsWith(".csv"))) {
+                if (f.isHidden() || f.getName().endsWith("lock")) {
                     continue;
                 }
                 addDocument(f);

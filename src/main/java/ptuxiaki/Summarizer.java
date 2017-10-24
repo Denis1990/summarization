@@ -3,6 +3,7 @@ package ptuxiaki;
 
 import com.google.common.primitives.Ints;
 import ptuxiaki.datastructures.Pair;
+import ptuxiaki.datastructures.Paragraph;
 import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
 
@@ -82,9 +83,13 @@ public class Summarizer {
         // stem the sentence first and then split it to words with String#split
         Set<String> titleWords = new HashSet<>(Arrays.asList(stemSentence(sentences.get(0)).split(" ")));
 
+        List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
+
         int size = sentences.size();
         long tt[] = new long[size];
         double tfIdf[] = new double[size];
+        double sl[] = new double[size];
+
         Pair weights[] = new Pair[size];
         for (int i = 0; i < size; i++) {
             // use log functions to determine importance
@@ -98,6 +103,18 @@ public class Summarizer {
             tfIdf[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), docId);
         }
 
+//        int sp = paragraphs.size();
+//        int j = 0;
+//        for (Paragraph par : paragraphs) {
+//            final int p = par.getSerialNo();
+//            final int sip = par.numberOfSentences();
+//            for (Paragraph.Sentence s : par.getSentences()) {
+//                final int spip = s.position;
+//                sl[j++] = ((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
+//            }
+//
+//        }
+
         for (int i = 0; i < size; i++) {
             weights[i] = Pair.of(i, tt[i] * tfIdf[i]);
         }
@@ -107,9 +124,9 @@ public class Summarizer {
         int summarySents = Ints.saturatedCast(size - (Math.round(size * compress)));
 
         Arrays.sort(weights);
-        int bidx = filePath.lastIndexOf('/');
-        int eidx = filePath.lastIndexOf(".");
-        String summaryFileName = filePath.substring(++bidx, eidx).concat("_summary");
+        int begin = filePath.lastIndexOf('/');
+        int end = filePath.lastIndexOf(".");
+        String summaryFileName = filePath.substring(++begin, end).concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (int i = 0; i < summarySents; i++) {
                 final int idx = findMinIndex(weights, summarySents);

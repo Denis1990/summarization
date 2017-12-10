@@ -23,6 +23,7 @@ public class SentenceUtils {
         STOP_WORDS.add("τη");
         STOP_WORDS.add("στου");
         STOP_WORDS.add("στουσ");
+        STOP_WORDS.add("στα");
     }
 
     public static String stemWord(final String word) {

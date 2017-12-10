@@ -123,7 +123,7 @@ public class Summarizer {
         double compress = (double) Integer.parseInt(properties.getProperty("compress")) / 100;
         int summarySents = Ints.saturatedCast(size - (Math.round(size * compress)));
 
-        Arrays.sort(weights);
+        Arrays.sort(weights, Collections.reverseOrder());
         int begin = filePath.lastIndexOf('/');
         int end = filePath.lastIndexOf(".");
         String summaryFileName = filePath.substring(++begin, end).concat("_summary");

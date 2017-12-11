@@ -6,6 +6,7 @@ import ptuxiaki.datastructures.Pair;
 import ptuxiaki.datastructures.Paragraph;
 import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
+import ptuxiaki.utils.PropertyKey;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,10 +19,12 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static ptuxiaki.utils.PropertyKey.COMPRESS;
 import static ptuxiaki.utils.SentenceUtils.keywords;
 import static ptuxiaki.utils.SentenceUtils.stemSentence;
 
 public class Summarizer {
+    public static final String PROPERTIES_FILENAME="summarizer.properties";
     public static final Path SUMMARY_DIR = Paths.get("summaries");
     
     private TextExtractor extractor;
@@ -29,12 +32,15 @@ public class Summarizer {
 
     public Summarizer(final String propertiesFile) {
         this.properties = new Properties();
-        try(FileInputStream props = new FileInputStream(propertiesFile)) {
-            this.properties.load(props);
-        } catch (IOException ioe) {
+        try {
+            try (FileInputStream props = new FileInputStream(propertiesFile)) {
+                this.properties.load(props);
+            }
+        } catch (IOException | NullPointerException ioe) {
             // load the default properties file
             try {
-                this.properties.load((Summarizer.class.getClassLoader().getResourceAsStream("summarizer.properties")));
+                this.properties.load((Summarizer.class.getClassLoader()
+                        .getResourceAsStream(PROPERTIES_FILENAME)));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -74,7 +80,7 @@ public class Summarizer {
     private void summarizeFile(final String filePath, final Indexer indexer, int docId) throws IOException {
         // get the titles and construct the titles dictionary.
         extractor.setFile(filePath);
-        int minWords = Integer.parseInt(properties.getProperty("minimumWords"));
+        int minWords = Integer.parseInt(properties.getProperty(COMPRESS));
         List<String> sentences = extractor.extractSentences()
                 .stream()
                 .filter(s -> s.split(" ").length > minWords)
@@ -120,7 +126,7 @@ public class Summarizer {
         }
 
         // this should have been loaded above
-        double compress = (double) Integer.parseInt(properties.getProperty("compress")) / 100;
+        double compress = (double) Integer.parseInt(properties.getProperty(COMPRESS)) / 100;
         int summarySents = Ints.saturatedCast(size - (Math.round(size * compress)));
 
         Arrays.sort(weights, Collections.reverseOrder());

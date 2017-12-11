@@ -21,9 +21,6 @@ public class App {
             System.out.println("You must pass a directory with the files you need to summarize");
             System.out.println("use: directory /path/to/dir");
             System.exit(0);
-        } else if (properties == null) {
-            // load default properties
-            properties = "summarizer.properties";
         }
 
         Summarizer summarizer = new Summarizer(properties);

@@ -19,7 +19,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ptuxiaki.utils.PropertyKey.COMPRESS;
+import static ptuxiaki.utils.PropertyKey.*;
 import static ptuxiaki.utils.SentenceUtils.keywords;
 import static ptuxiaki.utils.SentenceUtils.stemSentence;
 
@@ -80,7 +80,10 @@ public class Summarizer {
     private void summarizeFile(final String filePath, final Indexer indexer, int docId) throws IOException {
         // get the titles and construct the titles dictionary.
         extractor.setFile(filePath);
-        int minWords = Integer.parseInt(properties.getProperty(COMPRESS));
+        int minWords = Integer.parseInt(properties.getProperty(MINIMUN_WORDS));
+        double wsl = Double.parseDouble(properties.getProperty(WSL));
+        double wst = Double.parseDouble(properties.getProperty(WST));
+        double wtt = Double.parseDouble(properties.getProperty(WTT));
         List<String> sentences = extractor.extractSentences()
                 .stream()
                 .filter(s -> s.split(" ").length > minWords)
@@ -122,7 +125,7 @@ public class Summarizer {
 //        }
 
         for (int i = 0; i < size; i++) {
-            weights[i] = Pair.of(i, tt[i] * tfIdf[i]);
+            weights[i] = Pair.of(i,  (wtt * tt[i]) + (wst * tfIdf[i]));
         }
 
         // this should have been loaded above

@@ -176,6 +176,7 @@ public class TextExtractor {
             }
             end = iterator.next();
         }
+        sentences.add(content.substring(start).trim());
         return sentences.stream()
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());

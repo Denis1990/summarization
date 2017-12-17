@@ -8,7 +8,6 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
-import ptuxiaki.utils.SentenceUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -166,12 +165,9 @@ public class TextExtractor {
             }
             end = iterator.next();
         }
-
-        return sentences.stream().filter(s -> !s.isEmpty())
-                .map(SentenceUtils::removeSpecialChars)
-                .map(SentenceUtils::removeTonation)
-                .map(SentenceUtils::replaceSigma)
-                .map(SentenceUtils::removeWhiteSpaces)
+        sentences.add(content.substring(start).trim());
+        return sentences.stream()
+                .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
     }
 

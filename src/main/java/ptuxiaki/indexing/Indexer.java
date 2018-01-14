@@ -1,7 +1,7 @@
 package ptuxiaki.indexing;
 
+import nnkstemmer.MyGreekAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.el.GreekAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -147,7 +147,7 @@ public class Indexer {
     }
 
     public Indexer() throws IOException {
-        this(DEFAULT_INDEX_DIR, new GreekAnalyzer());
+        this(DEFAULT_INDEX_DIR, new MyGreekAnalyzer());
     }
 
     public Indexer(final String directory, final Analyzer analyzer) throws IOException {

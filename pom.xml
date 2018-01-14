@@ -17,6 +17,15 @@
     </properties>
 
     <dependencies>
+        <!-- nnkstemmer -->
+        <dependency>
+            <groupId>nnkstemmer</groupId>
+            <artifactId>nnkstemmer</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <type>jar</type>
+            <systemPath>${project.basedir}/lib/nnkstemmer.jar</systemPath>
+        </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>

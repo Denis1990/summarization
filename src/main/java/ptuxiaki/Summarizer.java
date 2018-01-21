@@ -8,7 +8,6 @@ import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -24,27 +23,13 @@ import static ptuxiaki.utils.SentenceUtils.keywords;
 import static ptuxiaki.utils.SentenceUtils.stemSentence;
 
 public class Summarizer {
-    public static final String PROPERTIES_FILENAME="summarizer.properties";
     public static final Path SUMMARY_DIR = Paths.get("summaries");
     
     private TextExtractor extractor;
-    private Properties properties;
+    private final Properties properties;
 
-    public Summarizer(final String propertiesFile) {
-        this.properties = new Properties();
-        try {
-            try (FileInputStream props = new FileInputStream(propertiesFile)) {
-                this.properties.load(props);
-            }
-        } catch (IOException | NullPointerException ioe) {
-            // load the default properties file
-            try {
-                this.properties.load((Summarizer.class.getClassLoader()
-                        .getResourceAsStream(PROPERTIES_FILENAME)));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    public Summarizer(final Properties properties) {
+        this.properties = properties;
         this.extractor = new TextExtractor();
         if (!Files.exists(SUMMARY_DIR)) {
             try {

@@ -6,7 +6,6 @@ import ptuxiaki.datastructures.Pair;
 import ptuxiaki.datastructures.Paragraph;
 import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
-import ptuxiaki.utils.PropertyKey;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +18,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.lang.Math.log10;
 import static ptuxiaki.utils.PropertyKey.*;
 import static ptuxiaki.utils.SentenceUtils.keywords;
 import static ptuxiaki.utils.SentenceUtils.stemSentence;
@@ -81,13 +81,29 @@ public class Summarizer {
         // get the titles and construct the titles dictionary.
         extractor.setFile(filePath);
         int minWords = Integer.parseInt(properties.getProperty(MINIMUN_WORDS));
-        double wsl = Double.parseDouble(properties.getProperty(WSL));
-        double wst = Double.parseDouble(properties.getProperty(WST));
-        double wtt = Double.parseDouble(properties.getProperty(WTT));
+        double wsl = Double.parseDouble(properties.getProperty(WSL)); // weight sentence location
+        double wst = Double.parseDouble(properties.getProperty(WST)); // weight sentence terms
+        double wtt = Double.parseDouble(properties.getProperty(WTT)); // weight title terms
+        String sw = properties.getProperty("sw").toLowerCase(); // sentence weight function
         List<String> sentences = extractor.extractSentences()
                 .stream()
                 .filter(s -> s.split(" ").length > minWords)
                 .collect(Collectors.toList());
+
+        if (sw.equals("ISF")) {
+            // Compute data for ISF
+            Set<String> terms = new HashSet<>(Arrays.asList(String.join(" ").split(" ")));
+            HashMap<String, Integer> termsOcurrences = new HashMap<>();
+            terms.forEach(s -> termsOcurrences.put(s, 1));
+            for (String t : terms) {
+                for (String s : sentences) {
+                    if (s.contains(t)) {
+                        termsOcurrences.replace(t, termsOcurrences.get(t), termsOcurrences.get(t) + 1);
+                    }
+                }
+            }
+        }
+
         // the first sentence in the list is the title of the document
         // stem the sentence first and then split it to words with String#split
         Set<String> titleWords = new HashSet<>(Arrays.asList(stemSentence(sentences.get(0)).split(" ")));

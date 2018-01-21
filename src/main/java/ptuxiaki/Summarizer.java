@@ -90,10 +90,10 @@ public class Summarizer {
                 .filter(s -> s.split(" ").length > minWords)
                 .collect(Collectors.toList());
 
+        HashMap<String, Integer> termsOcurrences = new HashMap<>();
         if (sw.equals("ISF")) {
             // Compute data for ISF
             Set<String> terms = new HashSet<>(Arrays.asList(String.join(" ").split(" ")));
-            HashMap<String, Integer> termsOcurrences = new HashMap<>();
             terms.forEach(s -> termsOcurrences.put(s, 1));
             for (String t : terms) {
                 for (String s : sentences) {
@@ -113,6 +113,7 @@ public class Summarizer {
         int size = sentences.size();
         long tt[] = new long[size];
         double tfIdf[] = new double[size];
+        double tfIsf[] = new double[size];
         double sl[] = new double[size];
 
         Pair weights[] = new Pair[size];
@@ -125,7 +126,14 @@ public class Summarizer {
             // The point is i need a way to link the indexed document with an integer because the tf() method needs one
             // to reference the document.
             // FIXME: critical it is
-            tfIdf[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), docId);
+            if (sw.equals("idf")) {
+                tfIdf[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), docId);
+            }
+            else if (sw.equals("isf")) {
+                for (String word : sentences.get(i).split(" ")) {
+                    tfIsf[i] = indexer.tf(word, docId) * log10((double)size / termsOcurrences.getOrDefault(word, 1));
+                }
+            }
         }
 
 //        int sp = paragraphs.size();

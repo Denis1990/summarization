@@ -76,10 +76,13 @@ public class Summarizer {
                 .collect(Collectors.toList());
 
         HashMap<String, Integer> termsOcurrences = new HashMap<>();
-        if (sw.equals("ISF")) {
+        if (sw.equals("isf")) {
             // Compute data for ISF
-            Set<String> terms = new HashSet<>(Arrays.asList(String.join(" ").split(" ")));
-            terms.forEach(s -> termsOcurrences.put(s, 1));
+            String[] terms = Arrays.stream(
+                    sentences.stream().collect(Collectors.joining(" ")).split(" ")
+                    ).filter(s -> s.length() > 3).distinct().collect(Collectors.joining(" ")).split(" ");
+            Arrays.stream(terms).forEach(s -> termsOcurrences.put(s, 1));
+            // TODO: The terms need to be stemmed in order to proceed with  the ISF computations
             for (String t : terms) {
                 for (String s : sentences) {
                     if (s.contains(t)) {
@@ -115,7 +118,7 @@ public class Summarizer {
                 tfIdf[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), docId);
             }
             else if (sw.equals("isf")) {
-                for (String word : sentences.get(i).split(" ")) {
+                for (String word : stemSentence(sentences.get(i)).split(" ")) {
                     tfIsf[i] = indexer.tf(word, docId) * log10((double)size / termsOcurrences.getOrDefault(word, 1));
                 }
             }

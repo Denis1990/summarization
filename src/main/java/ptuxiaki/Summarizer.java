@@ -6,6 +6,7 @@ import ptuxiaki.datastructures.Pair;
 import ptuxiaki.datastructures.Paragraph;
 import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
+import ptuxiaki.utils.SentenceUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -69,7 +70,7 @@ public class Summarizer {
         double wsl = Double.parseDouble(properties.getProperty(WSL)); // weight sentence location
         double wst = Double.parseDouble(properties.getProperty(WST)); // weight sentence terms
         double wtt = Double.parseDouble(properties.getProperty(WTT)); // weight title terms
-        String sw = properties.getProperty("sw").toLowerCase(); // sentence weight function
+        String sw = properties.getProperty(SW).toLowerCase(); // sentence weight function
         List<String> sentences = extractor.extractSentences()
                 .stream()
                 .filter(s -> s.split(" ").length > minWords)
@@ -79,12 +80,12 @@ public class Summarizer {
         if (sw.equals("isf")) {
             // Compute data for ISF
             String[] terms = Arrays.stream(
-                    sentences.stream().collect(Collectors.joining(" ")).split(" ")
+                    sentences.stream().map(SentenceUtils::stemSentence).collect(Collectors.joining(" ")).split(" ")
                     ).filter(s -> s.length() > 3).distinct().collect(Collectors.joining(" ")).split(" ");
             Arrays.stream(terms).forEach(s -> termsOcurrences.put(s, 1));
-            // TODO: The terms need to be stemmed in order to proceed with  the ISF computations
             for (String t : terms) {
                 for (String s : sentences) {
+                    s = stemSentence(s);
                     if (s.contains(t)) {
                         termsOcurrences.replace(t, termsOcurrences.get(t), termsOcurrences.get(t) + 1);
                     }
@@ -114,10 +115,10 @@ public class Summarizer {
             // The point is i need a way to link the indexed document with an integer because the tf() method needs one
             // to reference the document.
             // FIXME: critical it is
-            if (sw.equals("idf")) {
+            if (sw.equals(IDF)) {
                 tfIdf[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), docId);
             }
-            else if (sw.equals("isf")) {
+            else if (sw.equals(ISF)) {
                 for (String word : stemSentence(sentences.get(i)).split(" ")) {
                     tfIsf[i] = indexer.tf(word, docId) * log10((double)size / termsOcurrences.getOrDefault(word, 1));
                 }

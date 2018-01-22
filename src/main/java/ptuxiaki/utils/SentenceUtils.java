@@ -1,8 +1,8 @@
 package ptuxiaki.utils;
 
+import nnkstemmer.NNKStemmerAdapter;
 import org.apache.commons.lang3.text.StrBuilder;
 import org.apache.lucene.analysis.el.GreekAnalyzer;
-import org.apache.lucene.analysis.el.GreekStemmer;
 import org.apache.lucene.analysis.util.CharArraySet;
 
 import java.util.Arrays;
@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public class SentenceUtils {
 
-    private static GreekStemmer grStemmer = new GreekStemmer();
+    private static NNKStemmerAdapter grStemmer = new NNKStemmerAdapter();
 
     private static CharArraySet STOP_WORDS = GreekAnalyzer.getDefaultStopSet();
 
@@ -27,7 +27,7 @@ public class SentenceUtils {
     }
 
     public static String stemWord(final String word) {
-        final int l = grStemmer.stem(word.toCharArray(), word.length());
+        final int l = NNKStemmerAdapter.stemWord(word.toCharArray(), word.length());
         return word.substring(0, l);
     }
 
@@ -42,7 +42,7 @@ public class SentenceUtils {
         StrBuilder strBuilder = new StrBuilder();
         for (String w : words) {
             if (!STOP_WORDS.contains(w)) {
-                strBuilder.append(stemWord(w)).append(" ");
+                strBuilder.append(stemWord(w.toLowerCase())).append(" ");
             }
         }
         return strBuilder.toString().trim();
@@ -55,7 +55,7 @@ public class SentenceUtils {
     }
 
     public static String removeSpecialChars(final String word) {
-        return word.replaceAll("[@#$%^&*()!\"\\,]", " ").trim();
+        return word.replaceAll("[@#$%^&*()!\"\\,»«]", " ").trim();
     }
 
     public static String removeWhiteSpaces(final String sentence) {

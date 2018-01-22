@@ -6,5 +6,9 @@ public class PropertyKey {
     public static final String WSL = "wsl";
     public static final String WST = "wst";
     public static final String WTT = "wtt";
-    public static final String SW = "idf";
+    public static final String SW = "sw";
+    public static final String IDF = "idf";
+    public static final String ISF = "isf";
+
+    public static final String SPACE = " ";
 }

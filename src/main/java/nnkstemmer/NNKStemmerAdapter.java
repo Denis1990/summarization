@@ -19,7 +19,7 @@ public class NNKStemmerAdapter {
                 len = size;
                 return len;
             }
-            len = stemmed.indexOf("\u0000");
+            len = stemmed.indexOf("\u0000") == -1 ? size : stemmed.indexOf("\u0000");
             Arrays.fill(data, '\u0000');
             return len;
         } catch (NullPointerException npe){

@@ -26,7 +26,8 @@ public class SentenceUtils {
         STOP_WORDS.add("στα");
     }
 
-    public static String stemWord(final String word) {
+    public static String stemWord(String word) {
+        word = removeSpecialChars(removeTonation(removeWhiteSpaces(replaceSigma(word))));
         final int l = NNKStemmerAdapter.stemWord(word.toCharArray(), word.length());
         return word.substring(0, l);
     }

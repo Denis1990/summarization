@@ -22,6 +22,8 @@ import static java.lang.Math.log10;
 import static ptuxiaki.utils.PropertyKey.*;
 import static ptuxiaki.utils.SentenceUtils.keywords;
 import static ptuxiaki.utils.SentenceUtils.stemSentence;
+import static ptuxiaki.utils.SentenceUtils.stemWord;
+
 
 public class Summarizer {
     public static final Path SUMMARY_DIR = Paths.get("summaries");
@@ -77,13 +79,20 @@ public class Summarizer {
                 .collect(Collectors.toList());
 
         HashMap<String, Integer> termsOcurrences = new HashMap<>();
-        if (sw.equals("isf")) {
+        if (sw.equals(ISF)) {
             // Compute data for ISF
             String[] terms = Arrays.stream(
-                    sentences.stream().map(SentenceUtils::stemSentence).collect(Collectors.joining(" ")).split(" ")
-                    ).filter(s -> s.length() > 3).distinct().collect(Collectors.joining(" ")).split(" ");
+                                sentences.stream()
+                                .map(SentenceUtils::stemSentence)
+                                .collect(Collectors.joining(" "))
+                                .split(" ")
+                             ).filter(s -> s.length() > 3)
+                              .distinct()
+                              .collect(Collectors.joining(" "))
+                              .split(" ");
             Arrays.stream(terms).forEach(s -> termsOcurrences.put(s, 1));
             for (String t : terms) {
+                t = stemWord(t);
                 for (String s : sentences) {
                     s = stemSentence(s);
                     if (s.contains(t)) {

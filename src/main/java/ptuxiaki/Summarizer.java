@@ -22,7 +22,6 @@ import static java.lang.Math.log10;
 import static ptuxiaki.utils.PropertyKey.*;
 import static ptuxiaki.utils.SentenceUtils.keywords;
 import static ptuxiaki.utils.SentenceUtils.stemSentence;
-import static ptuxiaki.utils.SentenceUtils.stemWord;
 
 
 public class Summarizer {
@@ -92,7 +91,6 @@ public class Summarizer {
                               .split(" ");
             Arrays.stream(terms).forEach(s -> termsOcurrences.put(s, 1));
             for (String t : terms) {
-                t = stemWord(t);
                 for (String s : sentences) {
                     s = stemSentence(s);
                     if (s.contains(t)) {
@@ -192,6 +190,7 @@ public class Summarizer {
             }
         } catch (NullPointerException npe) {
             System.out.println("Empty directory " + dir);
+            npe.printStackTrace();
         }
     }
 }

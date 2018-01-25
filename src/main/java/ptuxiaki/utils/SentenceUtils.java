@@ -27,7 +27,6 @@ public class SentenceUtils {
     }
 
     public static String stemWord(String word) {
-        word = removeSpecialChars(removeTonation(removeWhiteSpaces(replaceSigma(word))));
         final int l = NNKStemmerAdapter.stemWord(word.toCharArray(), word.length());
         return word.substring(0, l);
     }
@@ -56,7 +55,7 @@ public class SentenceUtils {
     }
 
     public static String removeSpecialChars(final String word) {
-        return word.replaceAll("[@#$%^&*()!\"\\,»«]", " ").trim();
+        return word.replaceAll("[@#$%^&*()!\"\\,»«\\.]", " ").trim();
     }
 
     public static String removeWhiteSpaces(final String sentence) {

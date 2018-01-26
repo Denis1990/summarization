@@ -77,7 +77,7 @@ public class Summarizer {
                 .filter(s -> s.split(" ").length > minWords)
                 .collect(Collectors.toList());
 
-        HashMap<String, Integer> termsOcurrences = new HashMap<>();
+        HashMap<String, Integer> termsOccurrences = new HashMap<>();
         if (sw.equals(ISF)) {
             // Compute data for ISF
             String[] terms = Arrays.stream(
@@ -89,12 +89,12 @@ public class Summarizer {
                               .distinct()
                               .collect(Collectors.joining(" "))
                               .split(" ");
-            Arrays.stream(terms).forEach(s -> termsOcurrences.put(s, 1));
+            Arrays.stream(terms).forEach(s -> termsOccurrences.put(s, 1));
             for (String t : terms) {
                 for (String s : sentences) {
                     s = stemSentence(s);
                     if (s.contains(t)) {
-                        termsOcurrences.replace(t, termsOcurrences.get(t), termsOcurrences.get(t) + 1);
+                        termsOccurrences.replace(t, termsOccurrences.get(t), termsOccurrences.get(t) + 1);
                     }
                 }
             }
@@ -127,7 +127,7 @@ public class Summarizer {
             }
             else if (sw.equals(ISF)) {
                 for (String word : stemSentence(sentences.get(i)).split(" ")) {
-                    tfIsf[i] = indexer.tf(word, docId) * log10((double)size / termsOcurrences.getOrDefault(word, 1));
+                    tfIsf[i] = indexer.tf(word, docId) * log10((double)size / termsOccurrences.getOrDefault(word, 1));
                 }
             }
         }

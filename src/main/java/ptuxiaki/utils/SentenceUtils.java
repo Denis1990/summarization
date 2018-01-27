@@ -55,7 +55,7 @@ public class SentenceUtils {
     }
 
     public static String removeSpecialChars(final String word) {
-        return word.replaceAll("[@#$%^&*()!\"\\,»«\\.]", " ").trim();
+        return word.replaceAll("[@#$%^&*()!\"\\,»«\\.-]", " ").trim();
     }
 
     public static String removeWhiteSpaces(final String sentence) {

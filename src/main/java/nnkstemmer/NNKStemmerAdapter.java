@@ -14,6 +14,8 @@ public class NNKStemmerAdapter {
             final word_node wn = words.remove(0);
             if (wn.getType() == word_node.ShortWord) {
                 return size;
+            } else if (wn.getType() == word_node.StopWord) {
+                return size;
             }
             return wn.getNormalized().length();
         } catch (NullPointerException npe){

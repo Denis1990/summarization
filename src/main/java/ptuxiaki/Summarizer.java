@@ -68,7 +68,7 @@ public class Summarizer {
         // get the titles and construct the titles dictionary.
         extractor.setFile(filePath);
         int minWords = Integer.parseInt(properties.getProperty(MINIMUN_WORDS));
-        double wsl = Double.parseDouble(properties.getProperty(WSL)); // weight sentence location
+        //double wsl = Double.parseDouble(properties.getProperty(WSL)); // weight sentence location
         double wst = Double.parseDouble(properties.getProperty(WST)); // weight sentence terms
         double wtt = Double.parseDouble(properties.getProperty(WTT)); // weight title terms
         String sw = properties.getProperty(SW).toLowerCase(); // sentence weight function
@@ -104,13 +104,13 @@ public class Summarizer {
         // stem the sentence first and then split it to words with String#split
         Set<String> titleWords = new HashSet<>(Arrays.asList(stemSentence(sentences.get(0)).split(" ")));
 
-        List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
+        //List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
 
         int size = sentences.size();
         long tt[] = new long[size];
         double tfIdf[] = new double[size];
         double tfIsf[] = new double[size];
-        double sl[] = new double[size];
+        //double sl[] = new double[size];
 
         Pair weights[] = new Pair[size];
         for (int i = 0; i < size; i++) {

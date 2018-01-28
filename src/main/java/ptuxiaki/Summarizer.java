@@ -153,7 +153,7 @@ public class Summarizer {
         int summarySents = Ints.saturatedCast(size - (Math.round(size * compress)));
 
         Arrays.sort(weights, Collections.reverseOrder());
-        int begin = filePath.lastIndexOf('/');
+        int begin = filePath.lastIndexOf(File.separatorChar);
         int end = filePath.lastIndexOf(".");
         String summaryFileName = filePath.substring(++begin, end).concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {

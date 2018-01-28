@@ -14,6 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lucene.version>5.3.1</lucene.version>
         <tika.version>1.16</tika.version>
+        <main.class>ptuxiaki.App</main.class>
     </properties>
 
     <dependencies>
@@ -94,6 +95,12 @@
             </properties>
         </profile>
         <profile>
+            <id>demo</id>
+            <properties>
+                <main.class>Demo</main.class>
+            </properties>
+        </profile>
+        <profile>
             <id>release</id>
             <properties>
                 <skipTests>true</skipTests>
@@ -136,7 +143,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>ptuxiaki.App</mainClass>
+                            <mainClass>${main.class}</mainClass>
                             <classpathPrefix>dependency</classpathPrefix>
                         </manifest>
                     </archive>
@@ -178,5 +185,8 @@
                 </executions>
             </plugin>
         </plugins>
+    </build>
+    <build>
+
     </build>
 </project>

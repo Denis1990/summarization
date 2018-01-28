@@ -23,9 +23,9 @@
             <groupId>nnkstemmer</groupId>
             <artifactId>nnkstemmer</artifactId>
             <version>1.0</version>
-            <scope>system</scope>
-            <type>jar</type>
-            <systemPath>${project.basedir}/lib/nnkstemmer.jar</systemPath>
+            <!--<scope>system</scope>-->
+            <!--<type>jar</type>-->
+            <!--<systemPath>${project.basedir}/lib/nnkstemmer.jar</systemPath>-->
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
@@ -156,7 +156,7 @@
                 <executions>
                     <execution>
                         <id>copy-dependencies</id>
-                        <phase>prepare-package</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
@@ -185,8 +185,5 @@
                 </executions>
             </plugin>
         </plugins>
-    </build>
-    <build>
-
     </build>
 </project>

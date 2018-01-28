@@ -1,6 +1,6 @@
 package ptuxiaki.indexing;
 
-import nnkstemmer.MyGreekAnalyzer;
+import stemmer.MyGreekAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;

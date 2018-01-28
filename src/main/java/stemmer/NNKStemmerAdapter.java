@@ -1,12 +1,14 @@
-package nnkstemmer;
+package stemmer;
+
+
+import nnkstemmer.word_node;
 
 import java.util.ArrayList;
 
-import static nnkstemmer.nnkstem.greek_vowel;
 import static nnkstemmer.nnkstem.rswas;
 
 public class NNKStemmerAdapter {
-    static ArrayList<word_node> words = new ArrayList<>();
+    static ArrayList<nnkstemmer.word_node> words = new ArrayList<>();
 
     public static int stemWord(char []data, int size) {
         try {

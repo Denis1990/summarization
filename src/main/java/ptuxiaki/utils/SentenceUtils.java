@@ -1,6 +1,6 @@
 package ptuxiaki.utils;
 
-import nnkstemmer.NNKStemmerAdapter;
+import stemmer.NNKStemmerAdapter;
 import org.apache.commons.lang3.text.StrBuilder;
 import org.apache.lucene.analysis.el.GreekAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;

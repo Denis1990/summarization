@@ -112,8 +112,7 @@ public class Summarizer {
 
         int size = sentences.size();
         long tt[] = new long[size];
-        double tfIdf[] = new double[size];
-        double tfIsf[] = new double[size];
+        double sentWeight[] = new double[size];
         //double sl[] = new double[size];
 
         Pair weights[] = new Pair[size];
@@ -127,11 +126,13 @@ public class Summarizer {
             // to reference the document.
             // FIXME: critical it is
             if (sw.equals(IDF)) {
-                tfIdf[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), docId);
+                // tfIdf sentence weight
+                sentWeight[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), docId);
             }
             else if (sw.equals(ISF)) {
+                // ISF sentence weight
                 for (String word : stemSentence(sentences.get(i)).split(" ")) {
-                    tfIsf[i] = indexer.tf(word, docId) * log10((double)size / termsOccurrences.getOrDefault(word, 1));
+                    sentWeight[i] += indexer.tf(word, docId) * log10((double)size / termsOccurrences.getOrDefault(word, 1));
                 }
             }
         }
@@ -149,7 +150,7 @@ public class Summarizer {
 //        }
 
         for (int i = 0; i < size; i++) {
-            weights[i] = Pair.of(i,  (wtt * tt[i]) + (wst * tfIdf[i]));
+            weights[i] = Pair.of(i,  (wtt * tt[i]) + (wst * sentWeight[i]));
         }
 
         // this should have been loaded above

@@ -6,7 +6,11 @@ In order to build this project you need to have maven installed on your system.
 
 After cloning run these commands:
 ```bash
-$ mvn install:install-file -Dfile=lib/nnkstemmer.jar -DartifactId=nnkstemmer -DgroupId=nnkstemmer -Dversion=1.0 -Dpackaging=jar 
+$ mvn install:install-file -Dfile=lib/nnkstemmer.jar \
+                           -DartifactId=nnkstemmer \
+                           -DgroupId=nnkstemmer \
+                           -Dversion=1.0 \
+                           -Dpackaging=jar 
 ```
 And then:
 ```bash

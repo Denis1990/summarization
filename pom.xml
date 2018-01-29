@@ -23,9 +23,6 @@
             <groupId>nnkstemmer</groupId>
             <artifactId>nnkstemmer</artifactId>
             <version>1.0</version>
-            <!--<scope>system</scope>-->
-            <!--<type>jar</type>-->
-            <!--<systemPath>${project.basedir}/lib/nnkstemmer.jar</systemPath>-->
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
@@ -68,14 +65,9 @@
             <version>3.4</version>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>LATEST</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>LATEST</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.3</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

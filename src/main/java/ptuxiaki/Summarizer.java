@@ -2,6 +2,8 @@ package ptuxiaki;
 
 
 import com.google.common.primitives.Ints;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ptuxiaki.datastructures.Pair;
 import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
@@ -15,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.log10;
@@ -27,7 +28,7 @@ import static ptuxiaki.utils.SentenceUtils.stemSentence;
 public class Summarizer {
     public static final Path SUMMARY_DIR = Paths.get("summaries");
 
-    private static Logger LOG = Logger.getLogger(Summarizer.class.toString());
+    private static Logger LOG = LoggerFactory.getLogger(Summarizer.class);
     private TextExtractor extractor;
     private final Properties properties;
 
@@ -78,8 +79,8 @@ public class Summarizer {
                 .filter(s -> s.split(" ").length > minWords)
                 .collect(Collectors.toList());
 
-        LOG.info(String.format("Sentences found in %s%n", filePath));
-        sentences.forEach(s -> LOG.info(s));
+        LOG.debug(String.format("%n===============Sentences found in %s==========================%n", filePath));
+        sentences.forEach(s -> LOG.debug(SentenceUtils.removeWhiteSpaces(s)));
 
         HashMap<String, Integer> termsOccurrences = new HashMap<>();
         if (sw.equals(ISF)) {

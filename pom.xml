@@ -93,6 +93,12 @@
             </properties>
         </profile>
         <profile>
+            <id>extractor</id>
+            <properties>
+                <main.class>ptuxiaki.ExtractorDemo</main.class>
+            </properties>
+        </profile>
+        <profile>
             <id>release</id>
             <properties>
                 <skipTests>true</skipTests>

@@ -247,14 +247,14 @@ public class TextExtractor {
         iterator = BreakIterator.getSentenceInstance(Locale.forLanguageTag(LANG_TAG));
         iterator.setText(content);
         //start signifies the index of a piece of text that may be a sentence
-        int start = iterator.first();
+        int start = 0;
         // current index in the text body
         int current = iterator.next();
         List<String> sentences = new ArrayList<>();
         ArrayList<Integer> boundaries = new ArrayList<>();
         boolean titleFound = false;
         int len = content.length();
-        int temp;
+        int steps = 4; // steps to backtrack or lookahead
         while (current != BreakIterator.DONE && current < len) {
             boundaries.add(current);
             // in most cases the first sentence of a document contains it's title.
@@ -275,15 +275,16 @@ public class TextExtractor {
                 }
                 start = current;
                 titleFound = true;
+                current = iterator.next();
                 continue;
             }
 
             // backtrack
             // find the position of dot char
             int idx = current;
-            while (content.charAt(idx--) != '.')
+            while (steps-- > 0 && content.charAt(idx--) != '.')
                 ;
-            // find the position of the whitespace char before idx
+            // find the position of the first whitespace char before idx
             int wIdx = idx;
             while (!Character.isWhitespace(content.charAt(wIdx--)))
                 ;
@@ -291,12 +292,14 @@ public class TextExtractor {
             // check if it is a small word like υπ. Δρ. κ. etc
             if (idx - wIdx <= 3) {
                 current = iterator.next();
+                steps = 4;
                 continue;
             }
 
             sentences.add(content.substring(start, current).trim());
             start = current;
             current = iterator.next();
+            steps = 4;
         }
         // add the last sentence in the list
         sentences.add(content.substring(start).trim());

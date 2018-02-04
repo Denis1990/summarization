@@ -296,7 +296,14 @@ public class TextExtractor {
                 continue;
             }
 
-            sentences.add(content.substring(start, current).trim());
+            // check if the sentence contains a secondary title
+            int pos = findSecondaryTitle(content.substring(start, current)) + start;
+            if (pos < current) {
+                sentences.add(content.substring(start, pos));
+                sentences.add(content.substring(pos, current));
+            } else {
+                sentences.add(content.substring(start, current).trim());
+            }
             start = current;
             current = iterator.next();
             steps = 4;
@@ -304,6 +311,26 @@ public class TextExtractor {
         // add the last sentence in the list
         sentences.add(content.substring(start).trim());
         return sentences;
+    }
+
+    private int findSecondaryTitle(String text) {
+        BreakIterator iterator = BreakIterator.getLineInstance(Locale.forLanguageTag(LANG_TAG));
+        iterator.setText(text);
+        int c;
+        int s = 0;
+        // iterator returns values from [0, text.length()] so we need to
+        // guard for NullPointerException in the inner if clause
+        while ((c = iterator.next()) != BreakIterator.DONE && c < text.length())  {
+                /*npe here is c == text.length */
+                /*                          v  */
+            if (Character.isUpperCase(text.charAt(c)) && text.charAt(c-1) == '\n') {
+                if (text.substring(s, c-1).trim().split(" ").length < 7) {
+                    break;
+                }
+                s = c;
+            }
+        }
+        return c == -1 ? text.length() : c;
     }
 
     /**

@@ -30,6 +30,7 @@ public class Summarizer {
 
     private static Logger LOG = LoggerFactory.getLogger(Summarizer.class);
     private TextExtractor extractor;
+    private Indexer indexer;
     private final Properties properties;
 
     public Summarizer(final Properties properties) {
@@ -66,7 +67,7 @@ public class Summarizer {
         return min_index;
     }
 
-    private void summarizeFile(final String filePath, final Indexer indexer, int docId) throws IOException {
+    private void summarizeFile(final String filePath, int docId) throws IOException {
         // get the titles and construct the titles dictionary.
         extractor.setFile(filePath);
         int minWords = Integer.parseInt(properties.getProperty(MINIMUN_WORDS));
@@ -175,7 +176,7 @@ public class Summarizer {
     }
 
     public void summarizeDirectory(final Path dir) throws IOException {
-        Indexer indexer = new Indexer();
+        this.indexer = new Indexer();
 
         // there is a problem here. If we want to summarize another directory we can't index those new files
         // because of the way the indexer was implemented. We need to delete the index directory gather all
@@ -189,7 +190,7 @@ public class Summarizer {
             int docId = 0;
             for (File f : dir.toFile().listFiles()) {
                 try {
-                    summarizeFile(f.toString(), indexer, docId++);
+                    summarizeFile(f.toString(), docId++);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

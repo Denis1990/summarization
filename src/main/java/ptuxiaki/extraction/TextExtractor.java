@@ -16,7 +16,6 @@ import java.io.InputStream;
 import java.text.BreakIterator;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class TextExtractor {
     private static final String LANG_TAG = "el-GR";
@@ -33,202 +32,261 @@ public class TextExtractor {
         return handler;
     }
 
-    private List<String> getSentencesFromPdf() {
-        List<String> sentences = new ArrayList<>();
-        final String content;
-        try {
-            content = extractFileContent().toString();
-        } catch (SAXException | TikaException | IOException e) {
-            e.printStackTrace();
-            return Collections.emptyList();
-        }
-        iterator.setText(content);
-        int start = iterator.first();
-        int end = iterator.next();
-        int prev = -1;
-        boolean isPossibleSentence = false;
-        int temp;
-        while (end != BreakIterator.DONE) {
-            char c = content.charAt(end - 1);
-            if (c == '.' || c == ':') {
-                temp = end-2;
-                // otan exoume suntomografies (υπ., π.χ., ν., αρ.)
-                while (temp > 0 && !Character.isWhitespace(content.charAt(temp)) && content.charAt(temp) != '.') {
-                    temp--;
-                }
-                if (end - temp > 4) {
-                    sentences.add(content.substring(start, end).trim());
-                    start = end;
-                }
-            } else if (c == '\n') {
-                isPossibleSentence = true;
-                prev = end;
-            } else if (isPossibleSentence) {
-                if (Character.isUpperCase(content.charAt(prev))) {
-                    sentences.add(content.substring(start, prev).trim());
-                    start = prev;
-                }
-                isPossibleSentence = false;
-            }
-            end = iterator.next();
-        }
-        sentences.add(content.substring(start));
-        return sentences.stream()
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
-    }
-
-    private List<String> getSentencesFromText(String text) {
-
-        iterator = BreakIterator.getSentenceInstance(new Locale("el", "gr"));
-        List<Integer> boundaries = new ArrayList<>();
+    private int findSecondaryTitle(String text) {
+        BreakIterator iterator = BreakIterator.getLineInstance(Locale.forLanguageTag(LANG_TAG));
         iterator.setText(text);
-        int bound;
-        while((bound = iterator.next()) != BreakIterator.DONE) {
-            int i = bound - 2;
-            while (i > 0 && !Character.isWhitespace(text.charAt(i)))
-                i--;
-            if ((bound - 2) - i < 3)
-                continue;
-
-            boundaries.add(bound);
-        }
-
-        int start = 0;
-        List<String> sentences = new ArrayList<>();
-
-        // if we found no sentence assume the entire text is one sentence.
-        if (boundaries.isEmpty()) {
-            sentences.add(text);
-            return sentences;
-        }
-
-        while (!boundaries.isEmpty()) {
-            int next = boundaries.remove(0);
-            sentences.add(text.substring(start, next));
-            start = next;
-        }
-        return sentences;
-    }
-
-    public List<String> extractSentences() {
-        if (filePath.endsWith("html")) return Collections.emptyList();
-
-        // TODO: make language configurable?
-        iterator = BreakIterator.getWordInstance(Locale.forLanguageTag(LANG_TAG));
-
-        List<String> sentences = new ArrayList<>();
-        final String content;
-        try {
-            content = extractFileContent().toString();
-        } catch (SAXException | TikaException | IOException e) {
-            e.printStackTrace();
-            return Collections.emptyList();
-        }
-        iterator.setText(content);
-        int start = iterator.first();
-        int end = iterator.next();
-        int prev = -1;
-        int consecutiveNewLines = 0;
-        int temp;
-        boolean isPossibleSentence = false;
-        while (end != BreakIterator.DONE) {
-            char c = content.charAt(end - 1);
-            if (c == '.' || c == ':') {
-                temp = end-2;
-                // otan exoume suntomografies (υπ., π.χ., ν., αρ.)
-                while (temp > 0 && !Character.isWhitespace(content.charAt(temp)) && content.charAt(temp) != '.') {
-                    temp--;
+        int c;
+        int s = 0;
+        // iterator returns values from [0, text.length()] so we need to
+        // guard for NullPointerException in the inner if clause
+        while ((c = iterator.next()) != BreakIterator.DONE && c < text.length())  {
+                /*npe here is c == text.length */
+                /*                          v  */
+            if (Character.isUpperCase(text.charAt(c)) && text.charAt(c-1) == '\n') {
+                if (text.substring(s, c-1).trim().split(" ").length < 7) {
+                    break;
                 }
-                if (end - temp > 4) {
-                    sentences.add(content.substring(start, end).trim());
-                    start = end;
-                    consecutiveNewLines = 0;
-                }
-            } else if (c == '\n') {
-                isPossibleSentence = true;
-                consecutiveNewLines++;
-                prev = end;
-            } else if (consecutiveNewLines >= 2) {
-                isPossibleSentence = false;
-                consecutiveNewLines = 0;
-            } else if (isPossibleSentence) {
-                if (Character.isUpperCase(content.charAt(prev))) {
-                    sentences.add(content.substring(start, prev).trim());
-                    start = prev;
-                    consecutiveNewLines = 0;
-                }
-                isPossibleSentence = false;
+                s = c;
             }
-            end = iterator.next();
         }
-        // add the last sentence of the document if it did not end with a dot char
-        sentences.add(content.substring(start));
-        return sentences.stream()
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
-
-        /*if (filePath.endsWith("pdf")) {
-            return getSentencesFromPdf();
-        } else if (filePath.endsWith("doc") || filePath.endsWith("docx") || filePath.endsWith("odt")) {
-            return getSentencesFromDocx();
-        } else if (filePath.endsWith("html")) {
-            return Collections.emptyList();
-        } else if (filePath.endsWith("txt")) {
-            return getSentencesFromTxt();
-        } else {
-            return Collections.emptyList();
-        }*/
+        return c == -1 ? text.length() : c;
     }
+
+    /**
+     * <p>This method is used to find the main title of a document.</p>
+     * <p>It should only be called once for each document.</p>
+     *
+     * @implSpec <p>As the majority of document begins with a title that doesn't
+     *           end with a dot character (.), we need to rely on other patterns
+     *           to discover the title of a document.</p>
+     *           One such pattern is \n followed by a capital case letter
+     *           immediately after.
+     *
+     * @implNote Scan the text using
+     *           {@link BreakIterator#getLineInstance(Locale) lineInstanceIterator}
+     *           and compare the current and the previous position returned by
+     *           the iterator. If the character in the current position is
+     *           capital case the character in the previous position is \n
+     *           return that position.
+     *
+     * @param text The string to search in.
+     *             <p>Usually the first sentence of a document
+     *             as returned from {@link BreakIterator#getSentenceInstance() sentenceInstanceIterator} iterator</p>
+     * @return the position found by the iterator
+     */
+    private int findTitle(String text) {
+        BreakIterator iterator = BreakIterator.getLineInstance(Locale.forLanguageTag(LANG_TAG));
+        iterator.setText(text);
+        int c;
+        // iterator returns values from [0, text.length()] so we need to
+        // guard for NullPointerException in the inner if clause
+        while ((c = iterator.next()) != BreakIterator.DONE && c < text.length())  {
+                /*npe here is c == text.length */
+                /*                          v  */
+            if (Character.isUpperCase(text.charAt(c)) && text.charAt(c-1) == '\n') {
+                break;
+            }
+        }
+        return c == -1 ? text.length() : c-1;
+    }
+
+//
+//    private List<String> getSentencesFromPdf() {
+//        List<String> sentences = new ArrayList<>();
+//        final String content;
+//        try {
+//            content = extractFileContent().toString();
+//        } catch (SAXException | TikaException | IOException e) {
+//            e.printStackTrace();
+//            return Collections.emptyList();
+//        }
+//        iterator.setText(content);
+//        int start = iterator.first();
+//        int end = iterator.next();
+//        int prev = -1;
+//        boolean isPossibleSentence = false;
+//        int temp;
+//        while (end != BreakIterator.DONE) {
+//            char c = content.charAt(end - 1);
+//            if (c == '.' || c == ':') {
+//                temp = end-2;
+//                // otan exoume suntomografies (υπ., π.χ., ν., αρ.)
+//                while (temp > 0 && !Character.isWhitespace(content.charAt(temp)) && content.charAt(temp) != '.') {
+//                    temp--;
+//                }
+//                if (end - temp > 4) {
+//                    sentences.add(content.substring(start, end).trim());
+//                    start = end;
+//                }
+//            } else if (c == '\n') {
+//                isPossibleSentence = true;
+//                prev = end;
+//            } else if (isPossibleSentence) {
+//                if (Character.isUpperCase(content.charAt(prev))) {
+//                    sentences.add(content.substring(start, prev).trim());
+//                    start = prev;
+//                }
+//                isPossibleSentence = false;
+//            }
+//            end = iterator.next();
+//        }
+//        sentences.add(content.substring(start));
+//        return sentences.stream()
+//                .filter(s -> !s.isEmpty())
+//                .collect(Collectors.toList());
+//    }
+//
+//    private List<String> getSentencesFromText(String text) {
+//
+//        iterator = BreakIterator.getSentenceInstance(new Locale("el", "gr"));
+//        List<Integer> boundaries = new ArrayList<>();
+//        iterator.setText(text);
+//        int bound;
+//        while((bound = iterator.next()) != BreakIterator.DONE) {
+//            int i = bound - 2;
+//            while (i > 0 && !Character.isWhitespace(text.charAt(i)))
+//                i--;
+//            if ((bound - 2) - i < 3)
+//                continue;
+//
+//            boundaries.add(bound);
+//        }
+//
+//        int start = 0;
+//        List<String> sentences = new ArrayList<>();
+//
+//        // if we found no sentence assume the entire text is one sentence.
+//        if (boundaries.isEmpty()) {
+//            sentences.add(text);
+//            return sentences;
+//        }
+//
+//        while (!boundaries.isEmpty()) {
+//            int next = boundaries.remove(0);
+//            sentences.add(text.substring(start, next));
+//            start = next;
+//        }
+//        return sentences;
+//    }
+//
+//    public List<String> extractSentences() {
+//        if (filePath.endsWith("html")) return Collections.emptyList();
+//
+//        // TODO: make language configurable?
+//        iterator = BreakIterator.getWordInstance(Locale.forLanguageTag(LANG_TAG));
+//
+//        List<String> sentences = new ArrayList<>();
+//        final String content;
+//        try {
+//            content = extractFileContent().toString();
+//        } catch (SAXException | TikaException | IOException e) {
+//            e.printStackTrace();
+//            return Collections.emptyList();
+//        }
+//        iterator.setText(content);
+//        int start = iterator.first();
+//        int end = iterator.next();
+//        int prev = -1;
+//        int consecutiveNewLines = 0;
+//        int temp;
+//        boolean isPossibleSentence = false;
+//        while (end != BreakIterator.DONE) {
+//            char c = content.charAt(end - 1);
+//            if (c == '.' || c == ':') {
+//                temp = end-2;
+//                // otan exoume suntomografies (υπ., π.χ., ν., αρ.)
+//                while (temp > 0 && !Character.isWhitespace(content.charAt(temp)) && content.charAt(temp) != '.') {
+//                    temp--;
+//                }
+//                if (end - temp > 4) {
+//                    sentences.add(content.substring(start, end).trim());
+//                    start = end;
+//                    consecutiveNewLines = 0;
+//                }
+//            } else if (c == '\n') {
+//                isPossibleSentence = true;
+//                consecutiveNewLines++;
+//                prev = end;
+//            } else if (consecutiveNewLines >= 2) {
+//                isPossibleSentence = false;
+//                consecutiveNewLines = 0;
+//            } else if (isPossibleSentence) {
+//                if (Character.isUpperCase(content.charAt(prev))) {
+//                    sentences.add(content.substring(start, prev).trim());
+//                    start = prev;
+//                    consecutiveNewLines = 0;
+//                }
+//                isPossibleSentence = false;
+//            }
+//            end = iterator.next();
+//        }
+//        // add the last sentence of the document if it did not end with a dot char
+//        sentences.add(content.substring(start));
+//        return sentences.stream()
+//                .filter(s -> !s.isEmpty())
+//                .collect(Collectors.toList());
+//
+//        /*if (filePath.endsWith("pdf")) {
+//            return getSentencesFromPdf();
+//        } else if (filePath.endsWith("doc") || filePath.endsWith("docx") || filePath.endsWith("odt")) {
+//            return getSentencesFromDocx();
+//        } else if (filePath.endsWith("html")) {
+//            return Collections.emptyList();
+//        } else if (filePath.endsWith("txt")) {
+//            return getSentencesFromTxt();
+//        } else {
+//            return Collections.emptyList();
+//        }*/
+//    }
 
     /**
      *
      * @param sentSize we need it in order to estimate if the document has any paragraphs
      * @return
      */
-    public List<Paragraph> extractParagraphs(int sentSize) {
-        if (filePath.endsWith(".html")) return Collections.emptyList();
+//    public List<Paragraph> extractParagraphs(int sentSize) {
+//        if (filePath.endsWith(".html")) return Collections.emptyList();
+//
+//        Pattern parSeparator = Pattern.compile("\\n");
+//
+//
+//        String content;
+//        try {
+//            content = extractFileContent().toString();
+//        } catch (SAXException | TikaException | IOException e) {
+//            e.printStackTrace();
+//            return Collections.emptyList();
+//        }
+//
+//        String [] paragraphsBlocks = parSeparator.split(content);
+//        int paragraphcount = (int) Arrays.stream(paragraphsBlocks).filter(s -> !s.isEmpty()).count();
+//        List<Paragraph> paragraphs = new ArrayList<>(paragraphsBlocks.length);
+//
+//        // 10% of the sentences of the document
+//        int delta = Math.round(sentSize * 0.1f);
+//
+//        // if number_of_sentences - number_of_paragraphs < delta then assume the document has no paragraphs
+//        if ((sentSize - paragraphcount) < delta) {
+//            System.out.println(filePath + " does not have paragraphs");
+//            return Collections.emptyList();
+//        }
+//
+//        int i = 0;
+//        for(String p : paragraphsBlocks) {
+//            if (p.isEmpty()) continue;
+//            int position = 1; // the position of the sentence inside the paragraph
+//            Paragraph par = new Paragraph(i++);
+//
+//            for (String s : getSentencesFromText(p)) {
+//                par.addSentence(new Paragraph.Sentence(position++, s.hashCode()));
+//            }
+//            paragraphs.add(par);
+//        }
+//
+//        return paragraphs;
+//    }
 
-        Pattern parSeparator = Pattern.compile("\\n");
-
-
-        String content;
-        try {
-            content = extractFileContent().toString();
-        } catch (SAXException | TikaException | IOException e) {
-            e.printStackTrace();
-            return Collections.emptyList();
-        }
-
-        String [] paragraphsBlocks = parSeparator.split(content);
-        int paragraphcount = (int) Arrays.stream(paragraphsBlocks).filter(s -> !s.isEmpty()).count();
-        List<Paragraph> paragraphs = new ArrayList<>(paragraphsBlocks.length);
-
-        // 10% of the sentences of the document
-        int delta = Math.round(sentSize * 0.1f);
-
-        // if number_of_sentences - number_of_paragraphs < delta then assume the document has no paragraphs
-        if ((sentSize - paragraphcount) < delta) {
-            System.out.println(filePath + " does not have paragraphs");
-            return Collections.emptyList();
-        }
-
-        int i = 0;
-        for(String p : paragraphsBlocks) {
-            if (p.isEmpty()) continue;
-            int position = 1; // the position of the sentence inside the paragraph
-            Paragraph par = new Paragraph(i++);
-
-            for (String s : getSentencesFromText(p)) {
-                par.addSentence(new Paragraph.Sentence(position++, s.hashCode()));
-            }
-            paragraphs.add(par);
-        }
-
-        return paragraphs;
-    }
-
-    public List<String> extractSentencesFromTextSentenceIterator() {
+    public List<String> extractSentences() {
         final String content;
         try {
             content = extractFileContent().toString();
@@ -303,69 +361,6 @@ public class TextExtractor {
         // add the last sentence in the list
         sentences.add(content.substring(start).trim());
         return sentences;
-    }
-
-    private int findSecondaryTitle(String text) {
-        BreakIterator iterator = BreakIterator.getLineInstance(Locale.forLanguageTag(LANG_TAG));
-        iterator.setText(text);
-        int c;
-        int s = 0;
-        // iterator returns values from [0, text.length()] so we need to
-        // guard for NullPointerException in the inner if clause
-        while ((c = iterator.next()) != BreakIterator.DONE && c < text.length())  {
-                /*npe here is c == text.length */
-                /*                          v  */
-            if (Character.isUpperCase(text.charAt(c)) && text.charAt(c-1) == '\n') {
-                if (text.substring(s, c-1).trim().split(" ").length < 7) {
-                    break;
-                }
-                s = c;
-            }
-        }
-        return c == -1 ? text.length() : c;
-    }
-
-    /**
-     * <p>This method is used to find the main title of a document.</p>
-     * <p>It should only be called once for each document.</p>
-     *
-     * @implSpec <p>As the majority of document begins with a title that doesn't
-     *           end with a dot character (.), we need to rely on other patterns
-     *           to discover the title of a document.</p>
-     *           One such pattern is \n followed by a capital case letter
-     *           immediately after.
-     *
-     * @implNote Scan the text using
-     *           {@link BreakIterator#getLineInstance(Locale) lineInstanceIterator}
-     *           and compare the current and the previous position returned by
-     *           the iterator. If the character in the current position is
-     *           capital case the character in the previous position is \n
-     *           return that position.
-     *
-     * @param text The string to search in.
-     *             <p>Usually the first sentence of a document
-     *             as returned from {@link BreakIterator#getSentenceInstance() sentenceInstanceIterator} iterator</p>
-     * @return the position found by the iterator
-     */
-    private int findTitle(String text) {
-        BreakIterator iterator = BreakIterator.getLineInstance(Locale.forLanguageTag(LANG_TAG));
-        iterator.setText(text);
-        int c;
-        // iterator returns values from [0, text.length()] so we need to
-        // guard for NullPointerException in the inner if clause
-        while ((c = iterator.next()) != BreakIterator.DONE && c < text.length())  {
-                /*npe here is c == text.length */
-                /*                          v  */
-            if (Character.isUpperCase(text.charAt(c)) && text.charAt(c-1) == '\n') {
-                break;
-            }
-        }
-        return c == -1 ? text.length() : c-1;
-    }
-
-    public List<String> extractSentencesFromFile(final String filePath) throws TikaException, SAXException, IOException {
-        this.filePath = filePath;
-        return extractSentencesFromTextSentenceIterator();
     }
 
     public void setFile(final String filePath) {

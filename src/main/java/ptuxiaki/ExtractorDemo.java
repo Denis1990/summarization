@@ -15,7 +15,8 @@ public class ExtractorDemo {
         TextExtractor extractor = new TextExtractor();
         for (String arg : args) {
             System.out.println("=====" + arg + "======");
-            List<String> s = extractor.extractSentencesFromFile(arg);
+            extractor.setFile(arg);
+            List<String> s = extractor.extractSentences();
             int j = 0;
             for (String i : s) {
                 System.out.println(String.format("%d sentence: %s", ++j, i.replaceAll("\\s", " ")));

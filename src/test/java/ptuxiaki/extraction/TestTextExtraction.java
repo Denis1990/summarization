@@ -101,21 +101,16 @@ public class TestTextExtraction {
 
     @Test
     public void testSenteceExtractionFromTxtFile() {
-        try {
-            List<String> sentences = extractor.extractSentencesFromFile(TestTextExtraction.class.getResource("/ptuxiaki/extraction/enfia.txt").getFile());
-            assertEquals(33, sentences.size(), 2);
-        } catch (TikaException | SAXException | IOException e) {
-            e.printStackTrace();
-        }
+        extractor.setFile(TestTextExtraction.class.getResource("/ptuxiaki/extraction/enfia.txt").getFile());
+        List<String> sentences = extractor.extractSentences();
+        assertEquals(33, sentences.size(), 2);
+
     }
 
     @Test
     public void testSenteceExtractionFromDocxFile() {
-        try {
-            List<String> sentences = extractor.extractSentencesFromFile(TestTextExtraction.class.getResource("/ptuxiaki/extraction/enfia.docx").getFile());
-            assertEquals(33, sentences.size(), 2);
-        } catch (TikaException | SAXException | IOException e) {
-            e.printStackTrace();
-        }
+        extractor.setFile(TestTextExtraction.class.getResource("/ptuxiaki/extraction/enfia.docx").getFile());
+        List<String> sentences = extractor.extractSentences();
+        assertEquals(33, sentences.size(), 2);
     }
 }

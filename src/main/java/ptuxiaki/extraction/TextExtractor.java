@@ -124,9 +124,10 @@ public class TextExtractor {
             // by itself and need to be added in the list.
             if (!titleFound) {
                 final int titlePos = findTitle(content.substring(start, current));
-                sentences.add(content.substring(start, titlePos));
+                // titles are uppercase
+                sentences.add(content.substring(start, titlePos).toUpperCase().trim());
                 if (titlePos != current) {
-                    sentences.add(content.substring(titlePos + 1, current));
+                    sentences.add(content.substring(titlePos + 1, current).trim());
                 }
                 start = current;
                 titleFound = true;
@@ -154,8 +155,9 @@ public class TextExtractor {
             // check if the sentence contains a secondary title
             int pos = findSecondaryTitle(content.substring(start, current)) + start;
             if (pos < current) {
-                sentences.add(content.substring(start, pos));
-                sentences.add(content.substring(pos, current));
+                // subtitles are in uppercase
+                sentences.add(content.substring(start, pos).toUpperCase().trim());
+                sentences.add(content.substring(pos, current).trim());
             } else {
                 sentences.add(content.substring(start, current).trim());
             }

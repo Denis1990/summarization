@@ -75,10 +75,10 @@ public class Summarizer {
         double wst = Double.parseDouble(properties.getProperty(WST)); // weight sentence terms
         double wtt = Double.parseDouble(properties.getProperty(WTT)); // weight title terms
         String sw = properties.getProperty(SW).toLowerCase(); // sentence weight function
-        List<String> sentences = extractor.extractSentences()
-                .stream()
-                .filter(s -> s.split(" ").length > minWords)
-                .collect(Collectors.toList());
+        List<String> sentences = extractor.extractSentences();
+        List<String> titles = sentences.stream().filter(s -> s.equals(s.toUpperCase())).collect(Collectors.toList());
+
+        sentences = sentences.stream().filter(s -> s.split(" ").length > minWords).collect(Collectors.toList());
 
         LOG.debug(String.format("%n===============Sentences found in %s==========================%n", filePath));
         sentences.forEach(s -> LOG.debug(SentenceUtils.removeWhiteSpaces(s)));
@@ -121,6 +121,7 @@ public class Summarizer {
         for (int i = 0; i < size; i++) {
             // use log functions to determine importance
             // see paper B47
+            // TODO: impement keyword for each title and subtitle.
             tt[i] = keywords(sentences.get(i), titleWords);
             // this is a problem. 0 indicates the number of the document, in the order it was indexed
             // what is that order i don't know. Maybe alphabetical, maybe by type or size.

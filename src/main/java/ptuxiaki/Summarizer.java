@@ -5,6 +5,7 @@ import com.google.common.primitives.Ints;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ptuxiaki.datastructures.SentenceType;
 import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
 import ptuxiaki.utils.SentenceUtils;
@@ -86,9 +87,17 @@ public class Summarizer {
             }
         }
 
-        // the first sentence in the list is the title of the document
-        // stem the sentence first and then split it to words with String#split
-        Set<String> titleWords = new HashSet<>(Arrays.asList(stemSentence(sentences.get(0)).split(" ")));
+        Set<Pair<String, SentenceType>> titleWords = new HashSet<>();
+        int j  = 0;
+        while (j < titles.size()) {
+            for (String word : stemSentence(titles.get(j)).split("\\s+")) {
+                titleWords.add(
+                        Pair.of(
+                                word, (j ==0) ? SentenceType.TITLE : SentenceType.SUBTITLE
+                        ));
+            }
+            j++;
+        }
 
         //List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
 
@@ -101,7 +110,7 @@ public class Summarizer {
         for (int i = 0; i < size; i++) {
             // use log functions to determine importance
             // see paper B47
-            // TODO: impement keyword for each title and subtitle.
+            // TODO: implement keyword for each title and subtitle.
             tt[i] = keywords(sentences.get(i), titleWords);
             // this is a problem. 0 indicates the number of the document, in the order it was indexed
             // what is that order i don't know. Maybe alphabetical, maybe by type or size.

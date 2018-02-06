@@ -1,9 +1,11 @@
 package ptuxiaki.utils;
 
-import stemmer.NNKStemmerAdapter;
 import org.apache.commons.lang3.text.StrBuilder;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.el.GreekAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
+import ptuxiaki.datastructures.SentenceType;
+import stemmer.NNKStemmerAdapter;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -32,8 +34,9 @@ public class SentenceUtils {
     }
 
     public static String stemSentence(final String sentence) {
-        String [] words = Arrays.stream(sentence.split(" "))
+        String [] words = Arrays.stream(sentence.split("\\s+"))
                 .filter(s -> !s.isEmpty())
+                .map(String::toLowerCase)
                 .map(SentenceUtils::removeSpecialChars)
                 .map(SentenceUtils::removeTonation)
                 .map(SentenceUtils::removeWhiteSpaces)
@@ -48,10 +51,9 @@ public class SentenceUtils {
         return strBuilder.toString().trim();
     }
 
-    public static long keywords(String sentence, Set<String> titleWords) {
-        return titleWords.stream()
-                .filter(stemSentence(sentence)::contains)
-                .count();
+    // FIXME: Implement this method
+    public static long keywords(String sentence, Set<Pair<String, SentenceType>> titleWords) {
+        return 7L;
     }
 
     public static String removeSpecialChars(final String word) {

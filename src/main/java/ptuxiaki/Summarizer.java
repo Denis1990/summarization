@@ -2,9 +2,9 @@ package ptuxiaki;
 
 
 import com.google.common.primitives.Ints;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ptuxiaki.datastructures.Pair;
 import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
 import ptuxiaki.utils.SentenceUtils;
@@ -45,26 +45,6 @@ public class Summarizer {
                 System.exit(0);
             }
         }
-    }
-
-    /**
-     * Returns the smallest index from the range [0, to).
-     * The index corresponds to an array index of the original sentences extracted from the file.
-     * @param array a sorted array of {@link Pair} objects
-     * @param to
-     * @return
-     */
-    private int findMinIndex(final Pair[] array, int to) {
-        int min_index = array.length+1;
-        int array_pos = -1;
-        for (int i = 0; i < to; i++) {
-            if (array[i].index < min_index) {
-                min_index = array[i].index;
-                array_pos = i;
-            }
-        }
-        array[array_pos].index = array.length+1;
-        return min_index;
     }
 
     private void summarizeFile(final String filePath, int docId) throws IOException {
@@ -117,7 +97,7 @@ public class Summarizer {
         double sentWeight[] = new double[size];
         //double sl[] = new double[size];
 
-        Pair weights[] = new Pair[size];
+        List<Pair<Double, Integer>> weights = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             // use log functions to determine importance
             // see paper B47
@@ -131,8 +111,7 @@ public class Summarizer {
             if (sw.equals(IDF)) {
                 // tfIdf sentence weight
                 sentWeight[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), docId);
-            }
-            else if (sw.equals(ISF)) {
+            } else if (sw.equals(ISF)) {
                 // ISF sentence weight
                 for (String word : stemSentence(sentences.get(i)).split(" ")) {
                     sentWeight[i] += indexer.tf(word, docId) * log10((double)size / termsOccurrences.getOrDefault(word, 1));
@@ -153,21 +132,20 @@ public class Summarizer {
 //        }
 
         for (int i = 0; i < size; i++) {
-            weights[i] = Pair.of(i,  (wtt * tt[i]) + (wst * sentWeight[i]));
+            weights.add(Pair.of((wtt * tt[i]) + (wst * sentWeight[i]), i));
         }
 
         // this should have been loaded above
         double compress = (double) Integer.parseInt(properties.getProperty(COMPRESS)) / 100;
         int summarySents = Ints.saturatedCast(size - (Math.round(size * compress)));
 
-        Arrays.sort(weights, Collections.reverseOrder());
+        weights.sort(Comparator.reverseOrder());
         int begin = filePath.lastIndexOf(File.separatorChar);
         int end = filePath.lastIndexOf(".");
         String summaryFileName = filePath.substring(++begin, end).concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (int i = 0; i < summarySents; i++) {
-                final int idx = findMinIndex(weights, summarySents);
-                fos.write(sentences.get(idx)
+                fos.write(sentences.get(weights.get(i).getValue())
                         .concat(System.lineSeparator())
                         .getBytes(Charset.forName("UTF-8"))
                 );

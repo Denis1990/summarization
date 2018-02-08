@@ -48,6 +48,31 @@ public class Summarizer {
         }
     }
 
+    /**
+     * <p>Calculates the importance of the sentence based on how many title words it has.</p>
+     * @param sentence the sentence as a string
+     * @param titleWords a set of {@link Pair<String,SentenceType>} object. Each pair consists
+     *                   of the actual word and an enum denoting if the word was found on a title
+     *                   or subtitle of the document.
+     * @return a double
+     */
+    private double titleKeywords(String sentence, Set<Pair<String, SentenceType>> titleWords) {
+        //TODO: implement logarithmic calculation
+        double a = Double.valueOf(properties.getProperty("a", "0.6"));
+        double b = Double.valueOf(properties.getProperty("b", "0.4"));
+        int tt = 0, mtt = 0;
+        for (Pair<String, SentenceType> word : titleWords) {
+            if (stemSentence(sentence).contains(word.getKey())) {
+                if (word.getValue().equals(SentenceType.TITLE)) {
+                    tt++;
+                } else if (word.getValue().equals(SentenceType.SUBTITLE)) {
+                    mtt++;
+                }
+            }
+        }
+        return (a * tt) + (b * mtt);
+    }
+
     private void summarizeFile(final String filePath, int docId) throws IOException {
         // get the titles and construct the titles dictionary.
         extractor.setFile(filePath);
@@ -59,7 +84,7 @@ public class Summarizer {
         List<String> sentences = extractor.extractSentences();
         List<String> titles = sentences.stream().filter(s -> s.equals(s.toUpperCase())).collect(Collectors.toList());
 
-        sentences = sentences.stream().filter(s -> s.split(" ").length > minWords).collect(Collectors.toList());
+        sentences = sentences.stream().filter(s -> s.split("\\s+").length > minWords).collect(Collectors.toList());
 
         LOG.debug(String.format("%n===============Sentences found in %s==========================%n", filePath));
         sentences.forEach(s -> LOG.debug(SentenceUtils.removeWhiteSpaces(s)));
@@ -71,11 +96,11 @@ public class Summarizer {
                                 sentences.stream()
                                 .map(SentenceUtils::stemSentence)
                                 .collect(Collectors.joining(" "))
-                                .split(" ")
+                                .split("\\s+")
                              ).filter(s -> s.length() > 3)
                               .distinct()
                               .collect(Collectors.joining(" "))
-                              .split(" ");
+                              .split("\\s+");
             Arrays.stream(terms).forEach(s -> termsOccurrences.put(s, 1));
             for (String t : terms) {
                 for (String s : sentences) {
@@ -102,7 +127,7 @@ public class Summarizer {
         //List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
 
         int size = sentences.size();
-        long tt[] = new long[size];
+        double tt[] = new double[size];
         double sentWeight[] = new double[size];
         //double sl[] = new double[size];
 
@@ -111,7 +136,7 @@ public class Summarizer {
             // use log functions to determine importance
             // see paper B47
             // TODO: implement keyword for each title and subtitle.
-            tt[i] = keywords(sentences.get(i), titleWords);
+            tt[i] = titleKeywords(stemSentence(sentences.get(i)), titleWords);
             // this is a problem. 0 indicates the number of the document, in the order it was indexed
             // what is that order i don't know. Maybe alphabetical, maybe by type or size.
             // The point is i need a way to link the indexed document with an integer because the tf() method needs one
@@ -141,7 +166,7 @@ public class Summarizer {
 //        }
 
         for (int i = 0; i < size; i++) {
-            weights.add(Pair.of((wtt * tt[i]) + (wst * sentWeight[i]), i));
+            weights.add(Pair.of(tt[i] + (wst * sentWeight[i]), i));
         }
 
         // this should have been loaded above

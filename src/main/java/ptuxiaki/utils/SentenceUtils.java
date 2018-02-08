@@ -51,11 +51,6 @@ public class SentenceUtils {
         return strBuilder.toString().trim();
     }
 
-    // FIXME: Implement this method
-    public static long keywords(String sentence, Set<Pair<String, SentenceType>> titleWords) {
-        return 7L;
-    }
-
     public static String removeSpecialChars(final String word) {
         return word.replaceAll("[@#$%^&*()!\"\\,»«\\.-]", " ").trim();
     }

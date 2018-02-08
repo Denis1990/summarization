@@ -44,7 +44,7 @@ public class TextExtractor {
                 /*npe here is c == text.length */
                 /*                          v  */
             if (Character.isUpperCase(text.charAt(c)) && text.charAt(c-1) == '\n') {
-                if (text.substring(s, c-1).trim().split(" ").length < 7) {
+                if (text.substring(s, c-1).trim().split("\\s+").length < 7) {
                     break;
                 }
                 s = c;

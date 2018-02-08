@@ -249,7 +249,7 @@ public class Indexer {
 
     public double computeSentenceWeight(final String sentence, int docNum) throws IOException {
         double tfIdf = 0;
-        for (String w : sentence.split(" ")) {
+        for (String w : sentence.split("\\s+")) {
             tfIdf += tf(w, docNum) * idf(w);
         }
         return tfIdf;

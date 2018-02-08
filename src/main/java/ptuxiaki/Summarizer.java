@@ -122,7 +122,7 @@ public class Summarizer {
                 sentWeight[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), docId);
             } else if (sw.equals(ISF)) {
                 // ISF sentence weight
-                for (String word : stemSentence(sentences.get(i)).split(" ")) {
+                for (String word : stemSentence(sentences.get(i)).split("\\s+")) {
                     sentWeight[i] += indexer.tf(word, docId) * log10((double)size / termsOccurrences.getOrDefault(word, 1));
                 }
             }

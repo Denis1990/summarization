@@ -33,7 +33,7 @@ public class Demo {
         String text = "Ήταν ένα μικρό καράβι που ήταν αταξίδευτο. Και έκανε ένα μικρό ταξίδι μέσα εις τη μεσόγειο. " +
                 "Και σε πέντε-έξι εβδομάδες σωθήκανε όλες οι τροφές. Και τότε ρίξανε τον κλήρο να δούνε ποιος θα φαγωθεί.";
         System.out.println("========WITH LUCENE STEMMER==========");
-        for (String word : text.split(" ")) {
+        for (String word : text.split("\\s+")) {
             if (STOP_WORDS.contains(word) || word.length() <= 3)
                 continue;
             word = removeSpecialChars(removeWhiteSpaces(removeTonation(replaceSigma(word.toLowerCase()))));
@@ -47,7 +47,7 @@ public class Demo {
         StrToWords(text, doc_words);
         rswas(doc_words);
         System.out.println(doc_words);
-//        for (String word : text.split(" ")) {
+//        for (String word : text.split("\\s+")) {
 //            word = removeSpecialChars(removeTonation(word));
 //            System.out.println(
 //                    String.format("[%s] => [%s]", word, stemWithNNKStemmer(word))

@@ -33,7 +33,7 @@ public class TextExtractor {
         return handler;
     }
 
-    private int findSecondaryTitle(String text) {
+    private int findSecondaryTitlePos(String text) {
         BreakIterator iterator = BreakIterator.getLineInstance(Locale.forLanguageTag(LANG_TAG));
         iterator.setText(text);
         int c;
@@ -75,7 +75,7 @@ public class TextExtractor {
      *             as returned from {@link BreakIterator#getSentenceInstance() sentenceInstanceIterator} iterator</p>
      * @return the position found by the iterator
      */
-    private int findTitle(String text) {
+    private int findTitlePos(String text) {
         BreakIterator iterator = BreakIterator.getLineInstance(Locale.forLanguageTag(LANG_TAG));
         iterator.setText(text);
         int c;
@@ -123,7 +123,7 @@ public class TextExtractor {
             // the title as well as the rest of the text which constitutes a sentence
             // by itself and need to be added in the list.
             if (!titleFound) {
-                final int titlePos = findTitle(content.substring(start, current));
+                final int titlePos = findTitlePos(content.substring(start, current));
                 // titles are uppercase
                 sentences.add(content.substring(start, titlePos).toUpperCase().trim());
                 if (titlePos != current) {
@@ -153,7 +153,7 @@ public class TextExtractor {
             }
 
             // check if the sentence contains a secondary title
-            int pos = findSecondaryTitle(content.substring(start, current)) + start;
+            int pos = findSecondaryTitlePos(content.substring(start, current)) + start;
             if (pos < current) {
                 // subtitles are in uppercase
                 sentences.add(content.substring(start, pos).toUpperCase().trim());

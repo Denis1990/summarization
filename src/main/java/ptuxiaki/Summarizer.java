@@ -52,7 +52,7 @@ public class Summarizer {
 
     /**
      * <p>Calculates the importance of the sentence based on how many title words it has.</p>
-     * @param sentence the sentence as a string
+     * @param sentence the stemmed sentence.
      * @param titleWords a set of {@link Pair<String,SentenceType>} object. Each pair consists
      *                   of the actual word and an enum denoting if the word was found on a title
      *                   or subtitle of the document.

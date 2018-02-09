@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import ptuxiaki.datastructures.SentenceType;
 import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
-import ptuxiaki.utils.MathUtils;
 import ptuxiaki.utils.SentenceUtils;
 
 import java.io.File;

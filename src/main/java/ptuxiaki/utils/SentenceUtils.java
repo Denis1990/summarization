@@ -36,11 +36,11 @@ public class SentenceUtils {
     public static String stemSentence(final String sentence) {
         String [] words = Arrays.stream(sentence.split("\\s+"))
                 .filter(s -> !s.isEmpty())
-                .map(String::toLowerCase)
-                .map(SentenceUtils::removeSpecialChars)
-                .map(SentenceUtils::removeTonation)
-                .map(SentenceUtils::removeWhiteSpaces)
                 .map(SentenceUtils::replaceSigma)
+                .map(SentenceUtils::removeWhiteSpaces)
+                .map(SentenceUtils::removeTonation)
+                .map(SentenceUtils::removeSpecialChars)
+                .map(String::toLowerCase)
                 .collect(Collectors.toList()).toArray(new String[]{});
         StrBuilder strBuilder = new StrBuilder();
         for (String w : words) {
@@ -52,7 +52,7 @@ public class SentenceUtils {
     }
 
     public static String removeSpecialChars(final String word) {
-        return word.replaceAll("[@#$%^&*()!\"\\,»«\\.-]", " ").trim();
+        return word.replaceAll("[@#$%^&*()!\"\\,»«\\.-:]", " ").trim();
     }
 
     public static String removeWhiteSpaces(final String sentence) {

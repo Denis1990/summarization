@@ -121,9 +121,8 @@ public class Summarizer {
         while (j < titles.size()) {
             for (String word : stemSentence(titles.get(j)).split("\\s+")) {
                 titleWords.add(
-                        Pair.of(
-                                word, (j ==0) ? SentenceType.TITLE : SentenceType.SUBTITLE
-                        ));
+                        Pair.of(word, (j ==0) ? SentenceType.TITLE : SentenceType.SUBTITLE)
+                );
             }
             j++;
         }
@@ -139,13 +138,8 @@ public class Summarizer {
         for (int i = 0; i < size; i++) {
             // use log functions to determine importance
             // see paper B47
-            // TODO: implement keyword for each title and subtitle.
             tt[i] = titleKeywords(sentences.get(i), titleWords);
-            // this is a problem. 0 indicates the number of the document, in the order it was indexed
-            // what is that order i don't know. Maybe alphabetical, maybe by type or size.
-            // The point is i need a way to link the indexed document with an integer because the tf() method needs one
-            // to reference the document.
-            // FIXME: critical it is
+
             if (sw.equals(IDF)) {
                 // tfIdf sentence weight
                 sentWeight[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), docId);

@@ -1,6 +1,7 @@
 package ptuxiaki.extraction;
 
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
@@ -8,15 +9,14 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
+import ptuxiaki.datastructures.Paragraph;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.BreakIterator;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.regex.Pattern;
 
 public class TextExtractor {
     private static final String LANG_TAG = "el-GR";
@@ -89,6 +89,38 @@ public class TextExtractor {
             }
         }
         return c == -1 ? text.length() : c-1;
+    }
+
+    private List<String> getSentencesFromText(String text) {
+        iterator = BreakIterator.getSentenceInstance(new Locale("el", "gr"));
+        List<String> sents = new ArrayList<>();
+        iterator.setText(text);
+        int end;
+        int start = 0;
+        int steps = 4;
+        while((end = iterator.next()) != BreakIterator.DONE) {
+
+            // go back at most 4 steps
+            // find the position of dot char
+            int idx = end;
+            while (steps-- > 0 && text.charAt(idx--) != '.')
+                ;
+            // find the position of the first whitespace char before idx
+            int wIdx = idx;
+            while (!Character.isWhitespace(text.charAt(wIdx--)))
+                ;
+
+            // check if it is a small word like υπ. Δρ. κ. etc
+            if (idx - wIdx <= 3) {
+                end = iterator.next();
+                steps = 4;
+                continue;
+            }
+            sents.add(text.substring(start, end));
+        }
+
+        sents.add(text.substring(start, end));
+        return sents;
     }
 
     public List<String> extractSentences() {
@@ -168,6 +200,47 @@ public class TextExtractor {
         // add the last sentence in the list
         sentences.add(content.substring(start).trim());
         return sentences;
+    }
+
+    public List<Paragraph> extractParagraphs(int sentSize) {
+        if (filePath.endsWith(".html")) return Collections.emptyList();
+
+        Pattern parSeparator = Pattern.compile("\\n");
+
+        String content;
+        try {
+            content = extractFileContent().toString();
+        } catch (SAXException | TikaException | IOException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+
+        String[] paragraphsBlocks = parSeparator.split(content);
+        int paragraphcount = (int) Arrays.stream(paragraphsBlocks).filter(s -> !s.isEmpty()).count();
+        List<Paragraph> paragraphs = new ArrayList<>(paragraphsBlocks.length);
+
+        // 10% of the sentences of the document
+        int delta = Math.round(sentSize * 0.1f);
+
+        // if number_of_sentences - number_of_paragraphs < delta then assume the document has no paragraphs
+        if ((sentSize - paragraphcount) < delta) {
+            System.out.println(filePath + " does not have paragraphs");
+            return Collections.emptyList();
+        }
+
+        int i = 0;
+        for (String p : paragraphsBlocks) {
+            if (p.isEmpty()) continue;
+            int position = 1; // the position of the sentence inside the paragraph
+            Paragraph par = new Paragraph(i++);
+
+            for (String s : getSentencesFromText(p)) {
+                par.addSentence(Pair.of(s, position));
+
+                paragraphs.add(par);
+            }
+        }
+        return paragraphs;
     }
 
     public void setFile(final String filePath) {

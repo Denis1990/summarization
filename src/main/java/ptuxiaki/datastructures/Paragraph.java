@@ -1,5 +1,7 @@
 package ptuxiaki.datastructures;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,15 +20,19 @@ public class Paragraph {
         }
     }
 
-    private int serialNo;
-    private List<Sentence> sentences = new ArrayList<>();
+    /**
+     * Position inside the document
+     * i.e first paragraphs third paragraph
+     */
+    private int pos;
 
+    private List<Pair<String, Integer>> sentences = new ArrayList<>();
 
-    public Paragraph(int serialNo) {
-        this.serialNo = serialNo;
+    public Paragraph(int pos) {
+        this.pos = pos;
     }
 
-    public boolean addSentence(Sentence s) {
+    public boolean addSentence(Pair<String, Integer> s) {
         return sentences.add(s);
     }
 
@@ -34,23 +40,19 @@ public class Paragraph {
         return sentences.size();
     }
 
-    public Sentence getIthSentence(int i) {
-        return sentences.get(i);
+    public String getIthSentence(int i) {
+        return sentences.get(i).getKey();
     }
 
-    public List<Sentence> getSentences() {
-        return sentences;
-    }
+//    public boolean containsSentence(int hash) {
+//        for (Sentence s : sentences) {
+//            if (s.sentenceHash == hash)
+//                return true;
+//        }
+//        return false;
+//    }
 
-    public boolean containsSentence(int hash) {
-        for (Sentence s : sentences) {
-            if (s.sentenceHash == hash)
-                return true;
-        }
-        return false;
-    }
-
-    public int getSerialNo() {
-        return serialNo;
+    public int getPosition() {
+        return pos;
     }
 }

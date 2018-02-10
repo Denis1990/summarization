@@ -90,12 +90,14 @@
             <id>demo</id>
             <properties>
                 <main.class>Demo</main.class>
+                <skipTests>true</skipTests>
             </properties>
         </profile>
         <profile>
             <id>extractor</id>
             <properties>
                 <main.class>ptuxiaki.ExtractorDemo</main.class>
+                <skipTests>true</skipTests>
             </properties>
         </profile>
         <profile>

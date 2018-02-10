@@ -13,7 +13,7 @@ public class MathUtils {
      * @return
      */
     public static double log3(int x) {
-        return log1p((double)x) / log1p((double)3);
+        return log1p(x) / log(3);
     }
 
     /**

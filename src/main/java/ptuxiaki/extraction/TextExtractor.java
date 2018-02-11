@@ -92,13 +92,13 @@ public class TextExtractor {
     }
 
     private List<String> getSentencesFromText(String text) {
-        iterator = BreakIterator.getSentenceInstance(new Locale("el", "gr"));
+        iterator = BreakIterator.getSentenceInstance(Locale.forLanguageTag(LANG_TAG));
         List<String> sents = new ArrayList<>();
         iterator.setText(text);
-        int end;
+        int end = iterator.next();
         int start = 0;
         int steps = 4;
-        while((end = iterator.next()) != BreakIterator.DONE) {
+        while(end != text.length() && end != BreakIterator.DONE) {
 
             // go back at most 4 steps
             // find the position of dot char
@@ -107,7 +107,7 @@ public class TextExtractor {
                 ;
             // find the position of the first whitespace char before idx
             int wIdx = idx;
-            while (!Character.isWhitespace(text.charAt(wIdx--)))
+            while (wIdx > 0 && !Character.isWhitespace(text.charAt(wIdx--)))
                 ;
 
             // check if it is a small word like υπ. Δρ. κ. etc
@@ -117,6 +117,9 @@ public class TextExtractor {
                 continue;
             }
             sents.add(text.substring(start, end));
+            start = end;
+            steps = 4;
+            end = iterator.next();
         }
 
         sents.add(text.substring(start, end));
@@ -235,10 +238,9 @@ public class TextExtractor {
             Paragraph par = new Paragraph(i++);
 
             for (String s : getSentencesFromText(p)) {
-                par.addSentence(Pair.of(s, position));
-
-                paragraphs.add(par);
+                par.addSentence(Pair.of(s, position++));
             }
+            paragraphs.add(par);
         }
         return paragraphs;
     }

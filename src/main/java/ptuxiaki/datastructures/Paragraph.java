@@ -44,14 +44,6 @@ public class Paragraph {
         return sentences.get(i).getKey();
     }
 
-//    public boolean containsSentence(int hash) {
-//        for (Sentence s : sentences) {
-//            if (s.sentenceHash == hash)
-//                return true;
-//        }
-//        return false;
-//    }
-
     public int getPosition() {
         return pos;
     }

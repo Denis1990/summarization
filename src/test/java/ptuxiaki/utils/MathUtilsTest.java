@@ -1,4 +1,4 @@
-package ptuxiaki;
+package ptuxiaki.utils;
 
 import org.junit.Test;
 

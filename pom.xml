@@ -147,6 +147,12 @@
                             <classpathPrefix>dependency</classpathPrefix>
                         </manifest>
                     </archive>
+<!--
+                    <excludes>
+                        <exclude>ptuxiaki.ExtractorDemo</exclude>
+                        <exclude>Demo</exclude>
+                    </excludes>
+-->
                 </configuration>
             </plugin>
             <plugin>

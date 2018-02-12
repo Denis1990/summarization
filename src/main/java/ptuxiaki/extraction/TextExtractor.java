@@ -10,6 +10,7 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import ptuxiaki.datastructures.Paragraph;
+import ptuxiaki.utils.SentenceUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +18,9 @@ import java.io.InputStream;
 import java.text.BreakIterator;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static ptuxiaki.utils.SentenceUtils.removeWhiteSpaces;
 
 public class TextExtractor {
     private static final String LANG_TAG = "el-GR";
@@ -123,7 +127,7 @@ public class TextExtractor {
         }
 
         sents.add(text.substring(start, end));
-        return sents;
+        return sents.stream().filter(s->!s.isEmpty()).collect(Collectors.toList());
     }
 
     public List<String> extractSentences() {
@@ -208,7 +212,7 @@ public class TextExtractor {
     public List<Paragraph> extractParagraphs(int sentSize) {
         if (filePath.endsWith(".html")) return Collections.emptyList();
 
-        Pattern parSeparator = Pattern.compile("\\n");
+        Pattern parSeparator = Pattern.compile("\\n\\n");
 
         String content;
         try {
@@ -219,7 +223,7 @@ public class TextExtractor {
         }
 
         String[] paragraphsBlocks = parSeparator.split(content);
-        int paragraphcount = (int) Arrays.stream(paragraphsBlocks).filter(s -> !s.isEmpty()).count();
+        int paragraphcount = (int) Arrays.stream(paragraphsBlocks).filter(s -> !s.isEmpty() && s.length() > 1).count();
         List<Paragraph> paragraphs = new ArrayList<>(paragraphsBlocks.length);
 
         // 10% of the sentences of the document
@@ -238,7 +242,7 @@ public class TextExtractor {
             Paragraph par = new Paragraph(i++);
 
             for (String s : getSentencesFromText(p)) {
-                par.addSentence(Pair.of(s, position++));
+                par.addSentence(Pair.of(s.trim(), position++));
             }
             paragraphs.add(par);
         }

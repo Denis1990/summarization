@@ -87,24 +87,21 @@ public class Summarizer {
         List<String> sentences = extractor.extractSentences();
         List<String> titles = sentences.stream().filter(s -> s.equals(s.toUpperCase())).collect(Collectors.toList());
 
+        // keep the sentences that have more than minWords words
         sentences = sentences.stream().filter(s -> s.split("\\s+").length > minWords).collect(Collectors.toList());
 
+        // remove sometime
         LOG.debug(String.format("%n===============Sentences found in %s==========================%n", filePath));
         sentences.forEach(s -> LOG.debug(SentenceUtils.removeWhiteSpaces(s)));
 
         HashMap<String, Integer> termsOccurrences = new HashMap<>();
         if (sw.equals(ISF)) {
             // Compute data for ISF
-            String[] terms = Arrays.stream(
-                                sentences.stream()
-                                .map(SentenceUtils::stemSentence)
-                                .collect(Collectors.joining(" "))
-                                .split("\\s+")
-                             ).filter(s -> s.length() > 3)
-                              .distinct()
-                              .collect(Collectors.joining(" "))
-                              .split("\\s+");
-            Arrays.stream(terms).forEach(s -> termsOccurrences.put(s, 1));
+            Set<String> terms = new HashSet<>();
+            for (String s : sentences) {
+                terms.addAll(Arrays.asList(stemSentence(s).split("\\s+")));
+            }
+            terms.forEach(s -> termsOccurrences.put(s, 1));
             for (String t : terms) {
                 for (String s : sentences) {
                     s = stemSentence(s);
@@ -120,7 +117,7 @@ public class Summarizer {
         while (j < titles.size()) {
             for (String word : stemSentence(titles.get(j)).split("\\s+")) {
                 titleWords.add(
-                        Pair.of(word, (j ==0) ? SentenceType.TITLE : SentenceType.SUBTITLE)
+                        Pair.of(word, (j == 0) ? SentenceType.TITLE : SentenceType.SUBTITLE)
                 );
             }
             j++;

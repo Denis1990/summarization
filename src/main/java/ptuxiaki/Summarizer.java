@@ -77,15 +77,31 @@ public class Summarizer {
     }
 
     private void summarizeFile(final String filePath, int docId) throws IOException {
-        // get the titles and construct the titles dictionary.
-        extractor.setFile(filePath);
+
+        /***********************************Load properties values************************************************/
         int minWords = Integer.parseInt(properties.getProperty(MINIMUN_WORDS));
         //double wsl = Double.parseDouble(properties.getProperty(WSL)); // weight sentence location
         double wst = Double.parseDouble(properties.getProperty(WST)); // weight sentence terms
         double wtt = Double.parseDouble(properties.getProperty(WTT)); // weight title terms
         String sw = properties.getProperty(SW).toLowerCase(); // sentence weight function
+        double compress = (double) Integer.parseInt(properties.getProperty(COMPRESS)) / 100;
+
+        extractor.setFile(filePath);
         List<String> sentences = extractor.extractSentences();
         List<String> titles = sentences.stream().filter(s -> s.equals(s.toUpperCase())).collect(Collectors.toList());
+
+        // construct the global title dictionary.
+        // Each word has an enum description denoting if it is a primary of medially title
+        Set<Pair<String, SentenceType>> titleWords = new HashSet<>();
+        int j  = 0;
+        while (j < titles.size()) {
+            for (String word : stemSentence(titles.get(j)).split("\\s+")) {
+                titleWords.add(
+                        Pair.of(word, (j == 0) ? SentenceType.TITLE : SentenceType.SUBTITLE)
+                );
+            }
+            j++;
+        }
 
         // keep the sentences that have more than minWords words
         sentences = sentences.stream().filter(s -> s.split("\\s+").length > minWords).collect(Collectors.toList());
@@ -104,23 +120,11 @@ public class Summarizer {
             terms.forEach(s -> termsOccurrences.put(s, 1));
             for (String t : terms) {
                 for (String s : sentences) {
-                    s = stemSentence(s);
-                    if (s.contains(t)) {
+                    if (stemSentence(s).contains(t)) {
                         termsOccurrences.replace(t, termsOccurrences.get(t), termsOccurrences.get(t) + 1);
                     }
                 }
             }
-        }
-
-        Set<Pair<String, SentenceType>> titleWords = new HashSet<>();
-        int j  = 0;
-        while (j < titles.size()) {
-            for (String word : stemSentence(titles.get(j)).split("\\s+")) {
-                titleWords.add(
-                        Pair.of(word, (j == 0) ? SentenceType.TITLE : SentenceType.SUBTITLE)
-                );
-            }
-            j++;
         }
 
         //List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
@@ -163,8 +167,6 @@ public class Summarizer {
             weights.add(Pair.of(tt[i] + (wst * sentWeight[i]), i));
         }
 
-        // this should have been loaded above
-        double compress = (double) Integer.parseInt(properties.getProperty(COMPRESS)) / 100;
         int summarySents = Ints.saturatedCast(size - (round(size * compress)));
 
         weights.sort(Comparator.reverseOrder());

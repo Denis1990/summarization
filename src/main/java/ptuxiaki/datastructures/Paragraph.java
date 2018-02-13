@@ -40,11 +40,15 @@ public class Paragraph {
         return sentences.size();
     }
 
+    public String getFirstSentence() {
+        return getIthSentence(0);
+    }
+
     public String getIthSentence(int i) {
         return sentences.get(i).getKey();
     }
 
-    public int getPosition() {
+    public int getPositionInDocument() {
         return pos;
     }
 }

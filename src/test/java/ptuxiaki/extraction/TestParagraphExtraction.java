@@ -34,5 +34,17 @@ public class TestParagraphExtraction {
                 "Η Αθηνά, κατά την Ελληνική μυθολογία, ήταν η θεά της σοφίας, της στρατηγικής και του πολέμου."
         );
     }
+    @Test
+    public void testParagraphsInDias() {
+        extractor.setFile(this.getClass().getClassLoader().getResource("ptuxiaki/extraction/dias.txt").getFile());
+        // 12 sentences in the document
+        List<Paragraph> paragraphList = extractor.extractParagraphs(12);
+        assertEquals(paragraphList.size(), 1);
+        assertEquals(paragraphList.get(0).numberOfSentences(), 12);
+        assertEquals(
+                paragraphList.get(0).getIthSentence(0),
+                "Ο Δίας ή Ζεύς σύμφωνα με την αρχαία ελληνική θεογονία είναι ο «Πατέρας των θεών και των ανθρώπων», που κυβερνά τους Θεούς του Ολύμπου."
+        );
+    }
 
 }

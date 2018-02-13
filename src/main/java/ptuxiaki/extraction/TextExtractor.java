@@ -211,8 +211,12 @@ public class TextExtractor {
 
     public List<Paragraph> extractParagraphs(int sentSize) {
         if (filePath.endsWith(".html")) return Collections.emptyList();
-
-        Pattern parSeparator = Pattern.compile("\\n\\n");
+        Pattern parSeparator;
+        if (filePath.endsWith(".txt")) {
+            parSeparator = Pattern.compile("\\n");
+        } else {
+            parSeparator = Pattern.compile("\\n\\n");
+        }
 
         String content;
         try {

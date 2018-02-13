@@ -130,6 +130,14 @@ public class TextExtractor {
         return sents.stream().filter(s->!s.isEmpty()).collect(Collectors.toList());
     }
 
+    /**
+     * <p>Extract the sentences from a document.</p>
+     * The document should be passed with the {@link #setFile(String)} method.
+     * @implNote <p>We use a {@link BreakIterator#getSentenceInstance() sentenceInstance} to scan through
+     *           the content of the document.</p>
+     *
+     * @return a list of strings each representing a sentence.
+     */
     public List<String> extractSentences() {
         final String content;
         try {
@@ -145,12 +153,10 @@ public class TextExtractor {
         // current index in the text body
         int current = iterator.next();
         List<String> sentences = new ArrayList<>();
-        ArrayList<Integer> boundaries = new ArrayList<>();
         boolean titleFound = false;
         int len = content.length();
         int steps = 4; // steps to backtrack or lookahead
         while (current != BreakIterator.DONE && current < len) {
-            boundaries.add(current);
             // in most cases the first sentence of a document contains it's title.
             // BreakIterator can't recognize the title automatically since it does
             // not end with any of it's stop characters. In order to get the title
@@ -253,6 +259,10 @@ public class TextExtractor {
         return paragraphs;
     }
 
+    /**
+     * Set the name of the file to extract sentences from.
+     * @param filePath the path to the file.
+     */
     public void setFile(final String filePath) {
         this.filePath = filePath;
     }

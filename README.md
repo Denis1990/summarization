@@ -1,7 +1,7 @@
 ## Shallow text summarization methods implementation.
 
 ## How to build
----------------
+
 In order to build this project you need to have maven installed on your system.
 
 After cloning run these commands:
@@ -18,7 +18,7 @@ $ mvn -Prelease clean install
 ```
 
 ## How to run
---------------
+
 In order to run this program you need to have a collection of documents. Currently only greek documents are supported.
 Put the documents in a directory of your preference and run the program passing the ```directory```
 argument pointing to the aforementioned directory.  

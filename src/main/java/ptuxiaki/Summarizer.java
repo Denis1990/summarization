@@ -164,10 +164,15 @@ public class Summarizer {
 //        }
 
         for (int i = 0; i < size; i++) {
-            weights.add(Pair.of(tt[i] + (wst * sentWeight[i]), i));
+            weights.add(Pair.of(wtt * tt[i] + (wst * sentWeight[i]), i));
         }
 
         int summarySents = Ints.saturatedCast(size - (round(size * compress)));
+        // If the document has too few sentences by default
+        // write the 3 most important
+        if (summarySents < 3) {
+            summarySents = 3;
+        }
 
         weights.sort(Comparator.reverseOrder());
         int begin = filePath.lastIndexOf(File.separatorChar);

@@ -48,7 +48,7 @@ public class TextExtractor {
                 /*npe here is c == text.length */
                 /*                          v  */
             if (Character.isUpperCase(text.charAt(c)) && text.charAt(c-1) == '\n') {
-                if (text.substring(s, c-1).trim().split("\\s+").length < 7) {
+                if (text.substring(s, c-1).trim().split("\\s+").length <= 9) {
                     break;
                 }
                 s = c;
@@ -171,13 +171,8 @@ public class TextExtractor {
                 final int titlePos = findTitlePos(content.substring(start, current));
                 // titles are uppercase
                 sentences.add(content.substring(start, titlePos).toUpperCase().trim());
-                if (titlePos != current) {
-                    sentences.add(content.substring(titlePos + 1, current).trim());
-                }
-                start = current;
+                start = titlePos+1;
                 titleFound = true;
-                current = iterator.next();
-                continue;
             }
 
             // go back at most 4 steps

@@ -10,7 +10,6 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import ptuxiaki.datastructures.Paragraph;
-import ptuxiaki.utils.SentenceUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,8 +18,6 @@ import java.text.BreakIterator;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static ptuxiaki.utils.SentenceUtils.removeWhiteSpaces;
 
 public class TextExtractor {
     private static final String LANG_TAG = "el-GR";
@@ -141,7 +138,7 @@ public class TextExtractor {
     public List<String> extractSentences() {
         final String content;
         try {
-            content = extractFileContent().toString();
+            content = extractFileContent().toString().trim();
         } catch (SAXException | TikaException | IOException e) {
             e.printStackTrace();
             return Collections.emptyList();
@@ -207,7 +204,7 @@ public class TextExtractor {
         }
         // add the last sentence in the list
         sentences.add(content.substring(start).trim());
-        return sentences;
+        return sentences.stream().filter(s -> !s.isEmpty()).collect(Collectors.toList());
     }
 
     public List<Paragraph> extractParagraphs(int sentSize) {

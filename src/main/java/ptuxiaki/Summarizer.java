@@ -59,10 +59,10 @@ public class Summarizer {
      * @return a double
      */
     private double titleKeywords(String sentence, Set<Pair<String, SentenceType>> titleWords) {
-        //TODO: implement logarithmic calculation
         double a = Double.valueOf(properties.getProperty("a", "0.6"));
         double b = Double.valueOf(properties.getProperty("b", "0.4"));
-        int sentWords = sentence.split("\\s+").length;
+        // use the stemed sentence to calculate the words in the sentence
+        int sentWords = stemSentence(sentence).split("\\s+").length;
         int tt = 0, mtt = 0;
         for (Pair<String, SentenceType> word : titleWords) {
             if (stemSentence(sentence).contains(word.getKey())) {

@@ -5,6 +5,7 @@ import com.google.common.primitives.Ints;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ptuxiaki.datastructures.Paragraph;
 import ptuxiaki.datastructures.SentenceType;
 import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
@@ -56,13 +57,13 @@ public class Summarizer {
      * @param titleWords a set of {@link Pair<String,SentenceType>} object. Each pair consists
      *                   of the actual word and an enum denoting if the word was found on a title
      *                   or subtitle of the document.
+     * @param tw the size of the title glossary
+     * @param mtw the size of the medially titles glossary
      * @return a double
      */
-    private double titleKeywords(String sentence, Set<Pair<String, SentenceType>> titleWords) {
+    private double titleKeywords(String sentence, Set<Pair<String, SentenceType>> titleWords, int tw, int mtw) {
         double a = Double.valueOf(properties.getProperty("a", "0.6"));
         double b = Double.valueOf(properties.getProperty("b", "0.4"));
-        // use the stemed sentence to calculate the words in the sentence
-        int sentWords = stemSentence(sentence).split("\\s+").length;
         int tt = 0, mtt = 0;
         for (Pair<String, SentenceType> word : titleWords) {
             if (stemSentence(sentence).contains(word.getKey())) {
@@ -73,7 +74,7 @@ public class Summarizer {
                 }
             }
         }
-        return (a * (log2(tt)/log2(sentWords))) + (b * (log3(mtt) / log3(sentWords)));
+        return (a * (log2(tt)/log2(tw))) + (b * (log3(mtt) / log3(mtw)));
     }
 
     private void summarizeFile(final String filePath, int docId) throws IOException {
@@ -133,12 +134,18 @@ public class Summarizer {
         double tt[] = new double[size];
         double sentWeight[] = new double[size];
         //double sl[] = new double[size];
+        int titleTerms = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.TITLE)).count();
+        int mTitleTerms = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.SUBTITLE)).count();
+        // in order to avoid calculating log(0)
+        if (mTitleTerms == 0) {
+            mTitleTerms = 1;
+        }
 
         List<Pair<Double, Integer>> weights = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             // use log functions to determine importance
             // see paper B47
-            tt[i] = titleKeywords(sentences.get(i), titleWords);
+            tt[i] = titleKeywords(sentences.get(i), titleWords, titleTerms, mTitleTerms);
 
             if (sw.equals(IDF)) {
                 // tfIdf sentence weight

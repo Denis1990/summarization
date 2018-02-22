@@ -128,7 +128,7 @@ public class Summarizer {
             }
         }
 
-        //List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
+        List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
 
         int size = sentences.size();
         double tt[] = new double[size];

@@ -150,6 +150,10 @@ public class Indexer {
         this(DEFAULT_INDEX_DIR, new MyGreekAnalyzer());
     }
 
+    public Indexer(String directory) throws IOException {
+        this(directory, new MyGreekAnalyzer());
+    }
+
     public Indexer(final String directory, final Analyzer analyzer) throws IOException {
         this.indexDirectory = directory;
         setUp(analyzer);
@@ -281,5 +285,26 @@ public class Indexer {
 
     public int numOfDocs() {
         return this.docNum;
+    }
+
+    /**
+     * For the demo.
+     */
+    public void printStatistics() throws IOException {
+        if (!indexExists) {
+            return;
+        }
+        openReader();
+        Terms terms = SlowCompositeReaderWrapper.wrap(reader).terms(LuceneConstant.CONTENTS);
+        TermsEnum termsEnum = terms.iterator();
+        BytesRef t;
+        while ((t = termsEnum.next()) != null) {
+            System.out.print(t.utf8ToString());
+            System.out.print("\t");
+            System.out.print(termsEnum.docFreq());
+            System.out.print("\t");
+            System.out.println(termsEnum.totalTermFreq());
+        }
+        closeReader();
     }
 }

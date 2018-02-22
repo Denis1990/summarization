@@ -210,7 +210,7 @@ public class TextExtractor {
     public List<Paragraph> extractParagraphs(int sentSize) {
         if (filePath.endsWith(".html")) return Collections.emptyList();
         Pattern parSeparator;
-        if (filePath.endsWith(".txt")) {
+        if (filePath.endsWith(".txt") || filePath.endsWith(".odt") || filePath.endsWith(".docx")) {
             parSeparator = Pattern.compile("\\n");
         } else {
             parSeparator = Pattern.compile("\\n\\n");

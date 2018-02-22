@@ -2,7 +2,11 @@ import nnkstemmer.word_node;
 import org.apache.lucene.analysis.el.GreekAnalyzer;
 import org.apache.lucene.analysis.el.GreekStemmer;
 import org.apache.lucene.analysis.util.CharArraySet;
+import ptuxiaki.indexing.Indexer;
 
+import javax.swing.plaf.synth.SynthTextAreaUI;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import static nnkstemmer.nnkstem.StrToWords;
@@ -29,24 +33,37 @@ public class Demo {
 
     static ArrayList<word_node> words = new ArrayList<>();
 
+    public static void luceneDemo() throws IOException {
+        final String path = System.getenv("HOME") + File.separator + "Documents/bachelor_thesis/code/demoLucene";
+        Indexer indexer = new Indexer(System.getenv("HOME") + File.separator + "temp_index");
+        indexer.indexDirectory(path);
+        indexer.printStatistics();
+    }
+
     public static void main(String[] args) {
-        String text = "Ήταν ένα μικρό καράβι που ήταν αταξίδευτο. Και έκανε ένα μικρό ταξίδι μέσα εις τη μεσόγειο. " +
-                "Και σε πέντε-έξι εβδομάδες σωθήκανε όλες οι τροφές. Και τότε ρίξανε τον κλήρο να δούνε ποιος θα φαγωθεί.";
-        System.out.println("========WITH LUCENE STEMMER==========");
-        for (String word : text.split("\\s+")) {
-            if (STOP_WORDS.contains(word) || word.length() <= 3)
-                continue;
-            word = removeSpecialChars(removeWhiteSpaces(removeTonation(replaceSigma(word.toLowerCase()))));
-            System.out.println(
-                    String.format("[%s] => [%s]", word, stemWithGreekStemmer(word))
-            );
+        try {
+            luceneDemo();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        System.out.println("========WITH NNKSTEMMER==========");
-        ArrayList<word_node> doc_words = new ArrayList<>();
-        StrToWords(text, doc_words);
-        rswas(doc_words);
-        System.out.println(doc_words);
+//        String text = "Ήταν ένα μικρό καράβι που ήταν αταξίδευτο. Και έκανε ένα μικρό ταξίδι μέσα εις τη μεσόγειο. " +
+//                "Και σε πέντε-έξι εβδομάδες σωθήκανε όλες οι τροφές. Και τότε ρίξανε τον κλήρο να δούνε ποιος θα φαγωθεί.";
+//        System.out.println("========WITH LUCENE STEMMER==========");
+//        for (String word : text.split("\\s+")) {
+//            if (STOP_WORDS.contains(word) || word.length() <= 3)
+//                continue;
+//            word = removeSpecialChars(removeWhiteSpaces(removeTonation(replaceSigma(word.toLowerCase()))));
+//            System.out.println(
+//                    String.format("[%s] => [%s]", word, stemWithGreekStemmer(word))
+//            );
+//        }
+//
+//        System.out.println("========WITH NNKSTEMMER==========");
+//        ArrayList<word_node> doc_words = new ArrayList<>();
+//        StrToWords(text, doc_words);
+//        rswas(doc_words);
+//        System.out.println(doc_words);
 //        for (String word : text.split("\\s+")) {
 //            word = removeSpecialChars(removeTonation(word));
 //            System.out.println(

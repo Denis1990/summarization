@@ -294,16 +294,13 @@ public class Indexer {
         if (!indexExists) {
             return;
         }
+        System.out.format("%-10s %-10s %-10s%n", "Term", "DocFreq", "TermFreq");
         openReader();
         Terms terms = SlowCompositeReaderWrapper.wrap(reader).terms(LuceneConstant.CONTENTS);
         TermsEnum termsEnum = terms.iterator();
         BytesRef t;
         while ((t = termsEnum.next()) != null) {
-            System.out.print(t.utf8ToString());
-            System.out.print("\t");
-            System.out.print(termsEnum.docFreq());
-            System.out.print("\t");
-            System.out.println(termsEnum.totalTermFreq());
+            System.out.format("%-15s %-10d %-10d%n", t.utf8ToString(), termsEnum.docFreq(), termsEnum.totalTermFreq());
         }
         closeReader();
     }

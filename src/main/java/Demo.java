@@ -34,7 +34,7 @@ public class Demo {
     static ArrayList<word_node> words = new ArrayList<>();
 
     public static void luceneDemo() throws IOException {
-        final String path = System.getenv("HOME") + File.separator + "Documents/bachelor_thesis/code/demoLucene";
+        final String path = System.getenv("HOME") + File.separator + "Documents/demoLucene";
         Indexer indexer = new Indexer(System.getenv("HOME") + File.separator + "temp_index");
         indexer.indexDirectory(path);
         indexer.printStatistics();

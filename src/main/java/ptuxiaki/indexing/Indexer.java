@@ -1,5 +1,6 @@
 package ptuxiaki.indexing;
 
+import org.apache.lucene.search.spans.SpanWeight;
 import stemmer.MyGreekAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -295,16 +296,28 @@ public class Indexer {
             return;
         }
         openReader();
-        Terms terms = SlowCompositeReaderWrapper.wrap(reader).terms(LuceneConstant.CONTENTS);
-        TermsEnum termsEnum = terms.iterator();
-        BytesRef t;
-        while ((t = termsEnum.next()) != null) {
-            System.out.print(t.utf8ToString());
+        Terms terms;
+        Terms docs = SlowCompositeReaderWrapper.wrap(reader).terms(LuceneConstant.FILE_NAME);
+        TermsEnum termsEnum; //= terms.iterator();
+        TermsEnum docNames = docs.iterator();
+        BytesRef t, d;
+        PostingsEnum pEnums = null;
+        while((d = docNames.next()) != null) {
+            pEnums = docNames.postings(pEnums, PostingsEnum.ALL);
+            System.out.print(d.utf8ToString());
             System.out.print("\t");
-            System.out.print(termsEnum.docFreq());
-            System.out.print("\t");
-            System.out.println(termsEnum.totalTermFreq());
+            System.out.println(pEnums.nextDoc());
+            terms = reader.getTermVector(pEnums.nextDoc(), LuceneConstant.CONTENTS);
+            termsEnum = terms.iterator();
+            while ((t = termsEnum.next()) != null) {
+                System.out.print(t.utf8ToString());
+                System.out.print("\t");
+                System.out.print(termsEnum.docFreq());
+                System.out.print("\t");
+                System.out.println(termsEnum.totalTermFreq());
+            }
         }
+
         closeReader();
     }
 }

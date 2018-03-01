@@ -81,7 +81,7 @@ public class Summarizer {
 
         /***********************************Load properties values************************************************/
         int minWords = Integer.parseInt(properties.getProperty(MINIMUN_WORDS));
-        //double wsl = Double.parseDouble(properties.getProperty(WSL)); // weight sentence location
+        double wsl = Double.parseDouble(properties.getProperty(WSL)); // weight sentence location
         double wst = Double.parseDouble(properties.getProperty(WST)); // weight sentence terms
         double wtt = Double.parseDouble(properties.getProperty(WTT)); // weight title terms
         String sw = properties.getProperty(SW).toLowerCase(); // sentence weight function
@@ -133,7 +133,7 @@ public class Summarizer {
         int size = sentences.size();
         double tt[] = new double[size];
         double sentWeight[] = new double[size];
-        //double sl[] = new double[size];
+        double sl[] = new double[size];
         int titleTerms = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.TITLE)).count();
         int mTitleTerms = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.SUBTITLE)).count();
         // in order to avoid calculating log(0)
@@ -158,17 +158,17 @@ public class Summarizer {
             }
         }
 
-//        int sp = paragraphs.size();
-//        int j = 0;
-//        for (Paragraph par : paragraphs) {
-//            final int p = par.getSerialNo();
-//            final int sip = par.numberOfSentences();
-//            for (Paragraph.Sentence s : par.getSentences()) {
-//                final int spip = s.position;
-//                sl[j++] = ((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
-//            }
-//
-//        }
+        int sp = paragraphs.size();
+        j = 0;
+        for (Paragraph par : paragraphs) {
+            final int p = par.getPositionInDocument();
+            final int sip = par.numberOfSentences();
+            for (int i = 0; i < par.numberOfSentences(); i++) {
+                final int spip = i;
+                sl[j++] = (double)((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
+            }
+
+        }
 
         for (int i = 0; i < size; i++) {
             weights.add(Pair.of(wtt * tt[i] + (wst * sentWeight[i]), i));

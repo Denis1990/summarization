@@ -24,6 +24,7 @@ public class TextExtractor {
     private BreakIterator iterator;
     private String filePath;
 
+    private static final int SECONDARY_TITLE_MIN_WORDS = 9;
     private ContentHandler extractFileContent() throws SAXException, TikaException, IOException  {
         AutoDetectParser parser = new AutoDetectParser();
         Metadata md = new Metadata();
@@ -45,7 +46,7 @@ public class TextExtractor {
                 /*npe here is c == text.length */
                 /*                          v  */
             if (Character.isUpperCase(text.charAt(c)) && text.charAt(c-1) == '\n') {
-                if (text.substring(s, c-1).trim().split("\\s+").length <= 9) {
+                if (text.substring(s, c-1).trim().split("\\s+").length <= SECONDARY_TITLE_MIN_WORDS) {
                     break;
                 }
                 s = c;

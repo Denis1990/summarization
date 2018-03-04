@@ -35,26 +35,6 @@ public class TextExtractor {
         return handler;
     }
 
-    private int findSecondaryTitlePos(String text) {
-        BreakIterator iterator = BreakIterator.getLineInstance(Locale.forLanguageTag(LANG_TAG));
-        iterator.setText(text);
-        int c;
-        int s = 0;
-        // iterator returns values from [0, text.length()] so we need to
-        // guard for NullPointerException in the inner if clause
-        while ((c = iterator.next()) != BreakIterator.DONE && c < text.length())  {
-                /*npe here is c == text.length */
-                /*                          v  */
-            if (Character.isUpperCase(text.charAt(c)) && text.charAt(c-1) == '\n') {
-                if (text.substring(s, c-1).trim().split("\\s+").length <= SECONDARY_TITLE_MIN_WORDS) {
-                    break;
-                }
-                s = c;
-            }
-        }
-        return c == -1 ? text.length() : c;
-    }
-
     /**
      * <p>This method is used to find the main title of a document.</p>
      * <p>It should only be called once for each document.</p>
@@ -190,15 +170,39 @@ public class TextExtractor {
                 continue;
             }
 
-            // check if the sentence contains a secondary title
-            int pos = findSecondaryTitlePos(content.substring(start, current)) + start;
-            if (pos < current) {
-                // subtitles are in uppercase
-                sentences.add(content.substring(start, pos).toUpperCase().trim());
-                sentences.add(content.substring(pos, current).trim());
-            } else {
-                sentences.add(content.substring(start, current).trim());
+            String str = content.substring(start, current);
+            int strLen = str.length();
+            int cur = 0;
+            ArrayList<Integer> positions = new ArrayList<>();
+            int pos;
+            // find all the newline characters in the str segment
+            while ((pos = str.indexOf('\n', cur)) != -1 ) {
+                // add one after pos except when you reach the end of string
+                if (pos + 1 == strLen) {
+                    positions.add(pos);
+                } else {
+                    positions.add(pos+1);
+                }
+                cur = cur + pos + 1;
             }
+            cur = 0;
+            while (positions.size() > 0) {
+                int p = positions.remove(0);
+                // check if the character after newLine is capital
+                // and add it as a separate sentence or secondary title
+                // if it has less than SECONDARY_TITLE_MIN_WORDS
+                if (Character.isUpperCase(str.charAt(p))) {
+                    if (str.substring(cur, p).split("\\s+").length < SECONDARY_TITLE_MIN_WORDS) {
+                        sentences.add(str.substring(cur, p).trim().toUpperCase());
+                        cur = p;
+                    } else {
+                        sentences.add(str.substring(cur, p).trim());
+                        cur = p;
+                    }
+                }
+            }
+
+            sentences.add(str.substring(cur).trim());
             start = current;
             current = iterator.next();
             steps = 4;
@@ -245,7 +249,8 @@ public class TextExtractor {
             Paragraph par = new Paragraph(i++);
 
             for (String s : getSentencesFromText(p)) {
-                par.addSentence(Pair.of(s.trim(), position++));
+                if (!s.trim().isEmpty())
+                    par.addSentence(Pair.of(s.trim(), position++));
             }
             paragraphs.add(par);
         }

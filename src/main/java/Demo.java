@@ -4,14 +4,11 @@ import org.apache.lucene.analysis.el.GreekStemmer;
 import org.apache.lucene.analysis.util.CharArraySet;
 import ptuxiaki.indexing.Indexer;
 
-import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static nnkstemmer.nnkstem.StrToWords;
 import static nnkstemmer.nnkstem.rswas;
-import static ptuxiaki.utils.SentenceUtils.*;
 
 public class Demo {
 
@@ -34,7 +31,7 @@ public class Demo {
     static ArrayList<word_node> words = new ArrayList<>();
 
     public static void luceneDemo() throws IOException {
-        final String path = System.getenv("HOME") + File.separator + "Documents/bachelor_thesis/code/demoLucene";
+        final String path = System.getenv("HOME") + File.separator + "Documents/demoLucene";
         Indexer indexer = new Indexer(System.getenv("HOME") + File.separator + "temp_index");
         indexer.indexDirectory(path);
         indexer.printStatistics();

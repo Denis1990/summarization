@@ -294,6 +294,7 @@ public class Indexer {
         if (!indexExists) {
             return;
         }
+        System.out.format("%-10s %-10s %-10s%n", "Term", "DocFreq", "TermFreq");
         openReader();
         Terms terms;
         Terms docs = SlowCompositeReaderWrapper.wrap(reader).terms(LuceneConstant.FILE_NAME);
@@ -301,7 +302,7 @@ public class Indexer {
         TermsEnum docNames = docs.iterator();
         BytesRef t, d;
         PostingsEnum pEnums = null;
-        while((d = docNames.next()) != null) {
+        while ((d = docNames.next()) != null) {
             pEnums = docNames.postings(pEnums, PostingsEnum.ALL);
             System.out.print(d.utf8ToString());
             System.out.print("\t");
@@ -315,8 +316,8 @@ public class Indexer {
                 System.out.print("\t");
                 System.out.println(termsEnum.totalTermFreq());
             }
-        }
 
-        closeReader();
+            closeReader();
+        }
     }
 }

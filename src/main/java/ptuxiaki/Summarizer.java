@@ -9,7 +9,6 @@ import ptuxiaki.datastructures.Paragraph;
 import ptuxiaki.datastructures.SentenceType;
 import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
-import ptuxiaki.utils.SentenceUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -106,10 +105,6 @@ public class Summarizer {
 
         // keep the sentences that have more than minWords words
         sentences = sentences.stream().filter(s -> s.split("\\s+").length > minWords).collect(Collectors.toList());
-
-        // remove sometime
-        LOG.debug(String.format("%n===============Sentences found in %s==========================%n", filePath));
-        sentences.forEach(s -> LOG.debug(SentenceUtils.removeWhiteSpaces(s)));
 
         HashMap<String, Integer> termsOccurrences = new HashMap<>();
         if (sw.equals(ISF)) {

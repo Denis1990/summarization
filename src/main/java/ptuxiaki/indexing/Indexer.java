@@ -1,7 +1,5 @@
 package ptuxiaki.indexing;
 
-import org.apache.lucene.search.spans.SpanWeight;
-import stemmer.MyGreekAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -14,6 +12,7 @@ import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import ptuxiaki.utils.LuceneConstant;
+import stemmer.MyGreekAnalyzer;
 
 import java.io.*;
 import java.nio.file.Files;

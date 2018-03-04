@@ -5,9 +5,7 @@ import org.xml.sax.SAXException;
 import ptuxiaki.extraction.TextExtractor;
 
 import java.io.IOException;
-import java.text.BreakIterator;
 import java.util.List;
-import java.util.Locale;
 
 public class ExtractorDemo {
 

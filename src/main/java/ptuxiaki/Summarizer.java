@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.Math.log10;
 import static java.lang.Math.round;
-import static ptuxiaki.utils.MathUtils.log2;
+import static ptuxiaki.utils.MathUtils.log2p;
 import static ptuxiaki.utils.MathUtils.log3;
 import static ptuxiaki.utils.PropertyKey.*;
 import static ptuxiaki.utils.SentenceUtils.stemSentence;
@@ -73,7 +73,7 @@ public class Summarizer {
                 }
             }
         }
-        return (a * (log2(tt)/log2(tw))) + (b * (log3(mtt) / log3(mtw)));
+        return (a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw)));
     }
 
     private void summarizeFile(final String filePath, int docId) throws IOException {
@@ -84,6 +84,7 @@ public class Summarizer {
         double wst = Double.parseDouble(properties.getProperty(WST)); // weight sentence terms
         double wtt = Double.parseDouble(properties.getProperty(WTT)); // weight title terms
         String sw = properties.getProperty(SW).toLowerCase(); // sentence weight function
+        String pw = properties.getProperty(PW).toLowerCase(); // sentence location weight function
         double compress = (double) Integer.parseInt(properties.getProperty(COMPRESS)) / 100;
 
         extractor.setFile(filePath);
@@ -123,7 +124,7 @@ public class Summarizer {
             }
         }
 
-        List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
+//        List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
 
         int size = sentences.size();
         double tt[] = new double[size];
@@ -153,17 +154,26 @@ public class Summarizer {
             }
         }
 
-        int sp = paragraphs.size();
-        j = 0;
-        for (Paragraph par : paragraphs) {
-            final int p = par.getPositionInDocument();
-            final int sip = par.numberOfSentences();
-            for (int i = 0; i < par.numberOfSentences(); i++) {
-                final int spip = i;
-                sl[j++] = (double)((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
-            }
-
-        }
+        // calculate the weight from sentence location
+//        if (pw.equals(BAX)) {
+//            // baxendales algorithm
+//            for (Paragraph p : paragraphs) {
+//                p.getFirstSentence();
+//                p.numberOfSentences();
+//            }
+//        } else if (pw.equals(NAR)) {
+//            // news article algorithm
+//            int sp = paragraphs.size();
+//            j = 0;
+//            for (Paragraph par : paragraphs) {
+//                final int p = par.getPositionInDocument();
+//                final int sip = par.numberOfSentences();
+//                for (int i = 0; i < par.numberOfSentences(); i++) {
+//                    final int spip = i;
+//                    sl[j++] = (double)((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
+//                }
+//            }
+//        }
 
         for (int i = 0; i < size; i++) {
             weights.add(Pair.of(wtt * tt[i] + (wst * sentWeight[i]), i));

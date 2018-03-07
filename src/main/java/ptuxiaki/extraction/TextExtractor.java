@@ -244,13 +244,12 @@ public class TextExtractor {
 
         int i = 0;
         for (String p : paragraphsBlocks) {
-            if (p.isEmpty()) continue;
+            if (p.trim().isEmpty()) continue;
             int position = 1; // the position of the sentence inside the paragraph
             Paragraph par = new Paragraph(i++);
-
-            for (String s : getSentencesFromText(p)) {
-                if (!s.trim().isEmpty())
-                    par.addSentence(Pair.of(s.trim(), position++));
+            for (String s : getSentencesFromText(p.trim())) {
+                System.out.println("S");
+                par.addSentence(Pair.of(s.trim(), position++));
             }
             paragraphs.add(par);
         }

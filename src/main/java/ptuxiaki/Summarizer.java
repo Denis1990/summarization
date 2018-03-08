@@ -3,6 +3,7 @@ package ptuxiaki;
 
 import com.google.common.primitives.Ints;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptuxiaki.datastructures.Paragraph;
@@ -20,8 +21,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.lang.Math.log10;
-import static java.lang.Math.round;
+import static java.lang.Math.*;
 import static ptuxiaki.utils.MathUtils.log2p;
 import static ptuxiaki.utils.MathUtils.log3;
 import static ptuxiaki.utils.PropertyKey.*;
@@ -124,7 +124,7 @@ public class Summarizer {
             }
         }
 
-//        List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
+        List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
 
         int size = sentences.size();
         double tt[] = new double[size];
@@ -155,25 +155,32 @@ public class Summarizer {
         }
 
         // calculate the weight from sentence location
-//        if (pw.equals(BAX)) {
-//            // baxendales algorithm
-//            for (Paragraph p : paragraphs) {
-//                p.getFirstSentence();
-//                p.numberOfSentences();
-//            }
-//        } else if (pw.equals(NAR)) {
-//            // news article algorithm
-//            int sp = paragraphs.size();
-//            j = 0;
-//            for (Paragraph par : paragraphs) {
-//                final int p = par.getPositionInDocument();
-//                final int sip = par.numberOfSentences();
-//                for (int i = 0; i < par.numberOfSentences(); i++) {
-//                    final int spip = i;
-//                    sl[j++] = (double)((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
-//                }
-//            }
-//        }
+        if (pw.equals(BAX)) {
+            // baxendales algorithm
+            for (Paragraph p : paragraphs) {
+                // get the first sentence
+                Triple<String, Integer, Integer> s = p.getSentenceTriplet(0);
+                int idx = s.getRight();
+                sentWeight[idx] += sentWeight[idx] * 0.85;
+            }
+        } else if (pw.equals(NAR)) {
+            // news article algorithm
+
+            // sometimes the paragraphs extraction code
+            // finds more sentences than the sentence list
+            // so guard against this case by setting sp
+            // to sentence size if it exceeds that limit
+            int sp = min(paragraphs.size(), sentences.size());
+            j = 0;
+            for (Paragraph par : paragraphs) {
+                final int p = par.getPositionInDocument();
+                final int sip = par.numberOfSentences();
+                for (int i = 0; i < par.numberOfSentences(); i++) {
+                    final int spip = i;
+                    sl[j++] = (double)((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
+                }
+            }
+        }
 
         for (int i = 0; i < size; i++) {
             weights.add(Pair.of(wtt * tt[i] + (wst * sentWeight[i]), i));

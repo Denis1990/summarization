@@ -1,7 +1,7 @@
 package ptuxiaki.extraction;
 
 
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
@@ -242,14 +242,16 @@ public class TextExtractor {
             return Collections.emptyList();
         }
 
-        int i = 0;
+        int parPos = 0; // position of paragraph in document
+        int sentGlPos= 0; // sentence global position. The position of the sentence inside the document
         for (String p : paragraphsBlocks) {
             if (p.trim().isEmpty()) continue;
-            int position = 1; // the position of the sentence inside the paragraph
-            Paragraph par = new Paragraph(i++);
+            int sentPos = 1; // the position of the sentence inside the paragraph
+            Paragraph par = new Paragraph(parPos++);
             for (String s : getSentencesFromText(p.trim())) {
-                System.out.println("S");
-                par.addSentence(Pair.of(s.trim(), position++));
+                par.addSentence(Triple.of(s.trim(), sentPos, sentGlPos));
+                sentPos++;
+                sentGlPos++;
             }
             paragraphs.add(par);
         }

@@ -12,7 +12,7 @@ cp target/summarization.jar dist/demoLucene.jar
 mvn -Pextractor -DskipTests=true package
 cp target/summarization.jar dist/extractorDemo.jar
 
-mvn -Pdev package
+mvn -Prelease package
 cp target/summarization.jar dist/
 
 cp -r target/dependency dist/

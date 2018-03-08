@@ -1,24 +1,12 @@
 package ptuxiaki.datastructures;
 
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.text.StrBuilder;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Paragraph {
-
-    public static class Sentence {
-        /** Location inside the paragraph */
-        public int position;
-
-        /** The hashCode value of the sentence. */
-        public int sentenceHash;
-
-        public Sentence(int location, int hash) {
-            this.position = location;
-            this.sentenceHash = hash;
-        }
-    }
 
     /**
      * Position inside the document
@@ -26,13 +14,18 @@ public class Paragraph {
      */
     private int pos;
 
-    private List<Pair<String, Integer>> sentences = new ArrayList<>();
+    /**
+     * A sentence is Triplet structure. The left element is the sentence itself as a string
+     * The middle element is the position of the sentence inside the paragraph.
+     * The right element is the position of the sentence inside the document.
+     */
+    private List<Triple<String, Integer, Integer>> sentences = new ArrayList<>();
 
     public Paragraph(int pos) {
         this.pos = pos;
     }
 
-    public boolean addSentence(Pair<String, Integer> s) {
+    public boolean addSentence(Triple<String, Integer, Integer> s) {
         return sentences.add(s);
     }
 
@@ -45,10 +38,24 @@ public class Paragraph {
     }
 
     public String getIthSentence(int i) {
-        return sentences.get(i).getKey();
+        return sentences.get(i).getLeft();
+    }
+
+    public Triple<String, Integer, Integer> getSentenceTriplet(int i) {
+        return sentences.get(i);
     }
 
     public int getPositionInDocument() {
         return pos;
+    }
+
+    @Override
+    public String toString() {
+        StrBuilder paragraph = new StrBuilder();
+        for (Triple<String, Integer, Integer> t : sentences) {
+            paragraph.append(t.getLeft().trim());
+            paragraph.append(",");
+        }
+        return String.format("<%s>%n", paragraph.toString());
     }
 }

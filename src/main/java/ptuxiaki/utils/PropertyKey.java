@@ -10,6 +10,6 @@ public class PropertyKey {
     public static final String IDF = "idf";
     public static final String ISF = "isf";
     public static final String PW = "pw";
-    public static final String BAX = "BAX";
+    public static final String BAX = "bax";
     public static final String NAR = "NAR";
 }

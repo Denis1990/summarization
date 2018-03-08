@@ -194,12 +194,14 @@ public class Summarizer {
         }
 
         weights.sort(Comparator.reverseOrder());
+        List<Integer> selSentIdx = weights.stream().map(Pair::getValue).collect(Collectors.toList()).subList(0, summarySents);
+        selSentIdx.sort(Comparator.naturalOrder());
         int begin = filePath.lastIndexOf(File.separatorChar);
         int end = filePath.lastIndexOf(".");
         String summaryFileName = filePath.substring(++begin, end).concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (int i = 0; i < summarySents; i++) {
-                fos.write(sentences.get(weights.get(i).getValue())
+                fos.write(sentences.get(selSentIdx.get(i))
                         .concat(System.lineSeparator())
                         .getBytes(Charset.forName("UTF-8"))
                 );

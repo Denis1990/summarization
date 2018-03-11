@@ -4,15 +4,13 @@ if [[ ! -d "dist/" ]]; then
     mkdir 'dist'
 fi
 
-mvn clean
-
-mvn -Pdemo -DskipTests=true package
+mvn -Pdemo -DskipTests=true clean package
 cp target/summarization.jar dist/demoLucene.jar
 
-mvn -Pextractor -DskipTests=true package
+mvn -Pextractor -DskipTests=true clean package
 cp target/summarization.jar dist/extractorDemo.jar
 
-mvn -Prelease package
+mvn -Prelease clean package
 cp target/summarization.jar dist/
 
 cp -r target/dependency dist/

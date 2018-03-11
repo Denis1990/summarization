@@ -18,7 +18,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Paths;
-import java.util.UUID;
+import java.util.*;
 
 import static java.lang.Math.log10;
 
@@ -129,7 +129,7 @@ public class Indexer {
             doc.add(new StringField(LuceneConstant.DOC_ID, UUID.randomUUID().toString(), Field.Store.NO));
             doc.add(new Field(LuceneConstant.CONTENTS, tika.parseToString(stream, metadata), INDEX_STORED_ANALYZED));
             doc.add(new Field(LuceneConstant.FILE_PATH, file.getPath(), INDEX_STORED_ANALYZED));
-            doc.add(new StringField(LuceneConstant.FILE_NAME, file.getName(), Field.Store.YES));
+            doc.add(new Field(LuceneConstant.FILE_NAME, file.getName(), INDEX_STORED_ANALYZED));
             if (iwc.getOpenMode().equals(IndexWriterConfig.OpenMode.CREATE)) {
                 index.addDocument(doc);
                 System.out.printf("\tIndexing file %s%n", file.getName());
@@ -294,30 +294,51 @@ public class Indexer {
         if (!indexExists) {
             return;
         }
-        System.out.format("%-10s %-10s %-10s%n", "Term", "DocFreq", "TermFreq");
-        openReader();
-        Terms terms;
-        Terms docs = SlowCompositeReaderWrapper.wrap(reader).terms(LuceneConstant.FILE_NAME);
-        TermsEnum termsEnum; //= terms.iterator();
-        TermsEnum docNames = docs.iterator();
-        BytesRef t, d;
-        PostingsEnum pEnums = null;
-        while ((d = docNames.next()) != null) {
-            pEnums = docNames.postings(pEnums, PostingsEnum.ALL);
-            System.out.print(d.utf8ToString());
-            System.out.print("\t");
-            System.out.println(pEnums.nextDoc());
-            terms = reader.getTermVector(pEnums.nextDoc(), LuceneConstant.CONTENTS);
-            termsEnum = terms.iterator();
-            while ((t = termsEnum.next()) != null) {
-                System.out.print(t.utf8ToString());
-                System.out.print("\t");
-                System.out.print(termsEnum.docFreq());
-                System.out.print("\t");
-                System.out.println(termsEnum.totalTermFreq());
-            }
 
-            closeReader();
+        openReader();
+        boolean found = false;
+        boolean stored = false;
+
+        List<LeafReaderContext> leaves = reader.leaves();
+        int docs[] = new int[reader.numDocs()];
+        for (int i = 0; i < docs.length; i++) {
+            docs[i] = i;
         }
+        for (int doc : docs) {
+            System.out.print("Document: ");
+            for (LeafReaderContext ctx : leaves) {
+                LeafReader atmReader = ctx.reader();
+                FieldInfo info = atmReader.getFieldInfos().fieldInfo(LuceneConstant.CONTENTS);
+                if (info == null || !info.hasVectors()) continue;
+
+                Document storedData = atmReader.document(doc, new HashSet<>(Arrays.asList(LuceneConstant.CONTENTS, LuceneConstant.FILE_NAME)));
+                Terms terms = atmReader.getTermVector(doc, LuceneConstant.CONTENTS);
+
+
+                if (storedData == null) continue;
+
+                String strData = storedData.get(LuceneConstant.CONTENTS);
+                String fileName = storedData.get(LuceneConstant.FILE_NAME);
+                Set<String> uniqueWords = new HashSet<>(Arrays.asList(strData.split("\\s+")));
+//                if (strData != null) {
+//                    System.out.print("strData: ");
+//                    System.out.println(strData);
+//                }
+
+                TermsEnum tenums = terms.iterator();
+
+                BytesRef text = null;
+                restoreFromFile();
+                System.out.println(fileName);
+                System.out.println(String.format("%-16s %-12s %-5s", "Stemmed", "DocFreq", "DocTf"));
+                while ((text = tenums.next()) != null) {
+//                    long docFreq = tenums.docFreq();
+                    long docFreq = ctx.reader().docFreq(new Term(LuceneConstant.CONTENTS, text));
+                    long tf = tenums.totalTermFreq();
+                    System.out.println(String.format("%-17s%-13d%-23d", text.utf8ToString(), docFreq, tf));
+                }
+            }
+        }
+        closeReader();
     }
 }

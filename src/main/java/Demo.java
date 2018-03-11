@@ -8,7 +8,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static nnkstemmer.nnkstem.StrToWords;
 import static nnkstemmer.nnkstem.rswas;
+import static ptuxiaki.utils.SentenceUtils.*;
 
 public class Demo {
 
@@ -32,42 +34,48 @@ public class Demo {
 
     public static void luceneDemo() throws IOException {
         final String path = System.getenv("HOME") + File.separator + "Documents/demoLucene";
-        Indexer indexer = new Indexer(System.getenv("HOME") + File.separator + "temp_index");
-        indexer.indexDirectory(path);
+        Indexer indexer = new Indexer(System.getenv("HOME") + File.separator + "index");
+        if (!indexer.indexExists()) {
+            indexer.indexDirectory(path);
+        }
         indexer.printStatistics();
     }
 
     public static void main(String[] args) {
         try {
             luceneDemo();
+//            stemmerDemo();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-//        String text = "Ήταν ένα μικρό καράβι που ήταν αταξίδευτο. Και έκανε ένα μικρό ταξίδι μέσα εις τη μεσόγειο. " +
-//                "Και σε πέντε-έξι εβδομάδες σωθήκανε όλες οι τροφές. Και τότε ρίξανε τον κλήρο να δούνε ποιος θα φαγωθεί.";
-//        System.out.println("========WITH LUCENE STEMMER==========");
-//        for (String word : text.split("\\s+")) {
-//            if (STOP_WORDS.contains(word) || word.length() <= 3)
-//                continue;
-//            word = removeSpecialChars(removeWhiteSpaces(removeTonation(replaceSigma(word.toLowerCase()))));
-//            System.out.println(
-//                    String.format("[%s] => [%s]", word, stemWithGreekStemmer(word))
-//            );
-//        }
-//
-//        System.out.println("========WITH NNKSTEMMER==========");
-//        ArrayList<word_node> doc_words = new ArrayList<>();
-//        StrToWords(text, doc_words);
-//        rswas(doc_words);
-//        System.out.println(doc_words);
-//        for (String word : text.split("\\s+")) {
-//            word = removeSpecialChars(removeTonation(word));
-//            System.out.println(
-//                    String.format("[%s] => [%s]", word, stemWithNNKStemmer(word))
-//            );
-//        }
     }
+
+    public static void stemmerDemo() throws IOException {
+        String text = "Ήταν ένα μικρό καράβι που ήταν αταξίδευτο. Και έκανε ένα μικρό ταξίδι μέσα εις τη μεσόγειο. " +
+                "Και σε πέντε-έξι εβδομάδες σωθήκανε όλες οι τροφές. Και τότε ρίξανε τον κλήρο να δούνε ποιος θα φαγωθεί. Υπολογιστής Υπολογιστικό Υπολογισμός";
+        System.out.println("========WITH LUCENE STEMMER==========");
+        for (String word : text.split("\\s+")) {
+            if (STOP_WORDS.contains(word) || word.length() <= 3)
+                continue;
+            word = removeSpecialChars(removeWhiteSpaces(removeTonation(replaceSigma(word.toLowerCase()))));
+            System.out.println(
+                    String.format("[%s] => [%s]", word, stemWithGreekStemmer(word))
+            );
+        }
+
+        System.out.println("========WITH NNKSTEMMER==========");
+        ArrayList<word_node> doc_words = new ArrayList<>();
+        StrToWords(text, doc_words);
+        rswas(doc_words);
+        System.out.println(doc_words);
+        for (String word : text.split("\\s+")) {
+            word = removeSpecialChars(removeTonation(word));
+            System.out.println(
+                    String.format("[%s] => [%s]", word, stemWithNNKStemmer(word))
+            );
+        }
+    }
+
 
     public static String stemWithGreekStemmer(String word) {
         int l = grStemmer.stem(word.toCharArray(), word.length());

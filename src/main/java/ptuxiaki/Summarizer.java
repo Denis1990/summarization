@@ -161,7 +161,9 @@ public class Summarizer {
                 // get the first sentence
                 Triple<String, Integer, Integer> s = p.getSentenceTriplet(0);
                 int idx = s.getRight();
-                sentWeight[idx] += sentWeight[idx] * 0.85;
+                if (idx < sentWeight.length) {
+                    sentWeight[idx] += sentWeight[idx] * 0.85;
+                }
             }
         } else if (pw.equals(NAR)) {
             // news article algorithm
@@ -170,7 +172,7 @@ public class Summarizer {
             // finds more sentences than the sentence list
             // so guard against this case by setting sp
             // to sentence size if it exceeds that limit
-            int sp = min(paragraphs.size(), sentences.size());
+            int sp = paragraphs.size();
             j = 0;
             for (Paragraph par : paragraphs) {
                 final int p = par.getPositionInDocument();
@@ -201,7 +203,7 @@ public class Summarizer {
         String summaryFileName = filePath.substring(++begin, end).concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (int i = 0; i < summarySents; i++) {
-                fos.write(sentences.get(selSentIdx.get(i))
+                fos.write(sentences.get(weights.get(i).getValue()).trim()
                         .concat(System.lineSeparator())
                         .getBytes(Charset.forName("UTF-8"))
                 );

@@ -34,7 +34,7 @@ public class Demo {
 
     public static void luceneDemo() throws IOException {
         final String path = System.getenv("HOME") + File.separator + "Documents/demoLucene";
-        Indexer indexer = new Indexer(System.getenv("HOME") + File.separator + "index");
+        Indexer indexer = new Indexer(System.getenv("HOME") + File.separator + "temp_index");
         if (!indexer.indexExists()) {
             indexer.indexDirectory(path);
         }
@@ -43,8 +43,8 @@ public class Demo {
 
     public static void main(String[] args) {
         try {
-//            luceneDemo();
-            stemmerDemo();
+            luceneDemo();
+//            stemmerDemo();
         } catch (IOException e) {
             e.printStackTrace();
         }

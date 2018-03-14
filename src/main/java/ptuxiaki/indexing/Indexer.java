@@ -305,7 +305,7 @@ public class Indexer {
             docs[i] = i;
         }
         for (int doc : docs) {
-            System.out.print("Document: ");
+            System.out.print("\n\nDocument: ");
             for (LeafReaderContext ctx : leaves) {
                 LeafReader atmReader = ctx.reader();
                 FieldInfo info = atmReader.getFieldInfos().fieldInfo(LuceneConstant.CONTENTS);
@@ -320,22 +320,18 @@ public class Indexer {
                 String strData = storedData.get(LuceneConstant.CONTENTS);
                 String fileName = storedData.get(LuceneConstant.FILE_NAME);
                 Set<String> uniqueWords = new HashSet<>(Arrays.asList(strData.split("\\s+")));
-//                if (strData != null) {
-//                    System.out.print("strData: ");
-//                    System.out.println(strData);
-//                }
 
                 TermsEnum tenums = terms.iterator();
 
                 BytesRef text = null;
                 restoreFromFile();
                 System.out.println(fileName);
-                System.out.println(String.format("%-16s %-12s %-5s", "Stemmed", "DocFreq", "DocTf"));
+                System.out.println(String.format("\t%-16s %-12s %-5s", "Stemmed", "DocFreq", "DocTf"));
                 while ((text = tenums.next()) != null) {
 //                    long docFreq = tenums.docFreq();
                     long docFreq = ctx.reader().docFreq(new Term(LuceneConstant.CONTENTS, text));
                     long tf = tenums.totalTermFreq();
-                    System.out.println(String.format("%-17s%-13d%-23d", text.utf8ToString(), docFreq, tf));
+                    System.out.println(String.format("\t%-17s%-13d%-23d", text.utf8ToString(), docFreq, tf));
                 }
             }
         }

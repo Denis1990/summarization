@@ -43,16 +43,15 @@ public class Demo {
 
     public static void main(String[] args) {
         try {
-            luceneDemo();
-//            stemmerDemo();
+//            luceneDemo();
+            stemmerDemo();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public static void stemmerDemo() throws IOException {
-        String text = "Ήταν ένα μικρό καράβι που ήταν αταξίδευτο. Και έκανε ένα μικρό ταξίδι μέσα εις τη μεσόγειο. " +
-                "Και σε πέντε-έξι εβδομάδες σωθήκανε όλες οι τροφές. Και τότε ρίξανε τον κλήρο να δούνε ποιος θα φαγωθεί. Υπολογιστής Υπολογιστικό Υπολογισμός";
+        String text = "Ο υπουργός Εξωτερικών της Τουρκίας Γιασάρ Γιακίς και ο αρχηγός Στρατού της χώρας, στρατηγός Αϊτάτς Γιαλμάν, κατά τη διάρκεια επαφών τους στα κατεχόμενα, προφανώς κινούμενοι σε αυτό το κλίμα, έπλεξαν το εγκώμιο του Ραούφ Ντενκτάς, δηλώνοντας ότι οι απόψεις του στο Κυπριακό ταυτίζονται με αυτές της Άγκυρας.";
         System.out.println("========WITH LUCENE STEMMER==========");
         for (String word : text.split("\\s+")) {
             if (STOP_WORDS.contains(word) || word.length() <= 3)

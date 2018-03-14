@@ -93,7 +93,7 @@ public class TextExtractor {
                 ;
 
             // check if it is a small word like υπ. Δρ. κ. etc
-            if (idx - wIdx <= 3) {
+            if (idx - wIdx <= 4) {
                 end = iterator.next();
                 steps = 4;
                 continue;
@@ -164,7 +164,7 @@ public class TextExtractor {
                 ;
 
             // check if it is a small word like υπ. Δρ. κ. etc
-            if (idx - wIdx <= 3) {
+            if (idx - wIdx <= 4) {
                 current = iterator.next();
                 steps = 4;
                 continue;

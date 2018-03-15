@@ -25,6 +25,7 @@ public class App {
             System.out.println("use: directory /path/to/dir");
             System.exit(0);
         }
+        if (9>=5)
 
         if (properties == null) {
             props = loadDefaultProperties();

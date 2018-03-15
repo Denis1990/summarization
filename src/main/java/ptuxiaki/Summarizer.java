@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.lang.Math.log10;
 import static java.lang.Math.round;
@@ -140,6 +141,9 @@ public class Summarizer {
             mTitleTerms = 1;
         }
 
+        // the list that holds the weight of each sentence.
+        // The double value is the the weight while the int value
+        // is the index in the list of sentences
         List<Pair<Double, Integer>> weights = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             // use log functions to determine importance
@@ -175,20 +179,23 @@ public class Summarizer {
             // finds more sentences than the sentence list
             // so guard against this case by setting sp
             // to sentence size if it exceeds that limit
+            int totalNumOfSentences = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
             int sp = paragraphs.size();
             j = 0;
             for (Paragraph par : paragraphs) {
                 final int p = par.getPositionInDocument();
                 final int sip = par.numberOfSentences();
-                for (int i = 0; i < par.numberOfSentences(); i++) {
+                for (int i = 0; i < sip; i++) {
                     final int spip = i;
                     sl[j++] = (double)((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
                 }
             }
         }
 
+        // calculate the total weight of the sentence
+        // a * tt + b * st + c * sl
         for (int i = 0; i < size; i++) {
-            weights.add(Pair.of(wtt * tt[i] + (wst * sentWeight[i]), i));
+            weights.add(Pair.of((wtt * tt[i]) + (wst * sentWeight[i]), i));
         }
 
         int summarySents = (int)(size - (round(size * compress)));

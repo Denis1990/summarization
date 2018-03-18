@@ -1,5 +1,6 @@
 package ptuxiaki.indexing;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.el.GreekAnalyzer;
 import org.apache.lucene.document.Document;
@@ -178,7 +179,7 @@ public class Indexer {
 
                 // don't index hidden files for example .directory files on kde dolphin
                 // or files that are not pdf or txt
-                if (f.isHidden() || f.getName().endsWith("lock")) {
+                if (f.isHidden() || f.getName().endsWith("lock") || f.getName().endsWith("class")) {
                     continue;
                 }
                 addDocument(f);
@@ -231,6 +232,50 @@ public class Indexer {
             e.printStackTrace();
         }
         return (double) freq / totalTermFreqDoc[docId];
+    }
+
+    /**
+     * Compute the frequency of a term in the given document.
+     * The calculation is performed according to equation (3)
+     * presented <a href="file:///home/denis/Documents/bachelor_thesis/papers/B33.pdf">here</a>
+     *
+     * @param term the stemmed word
+     * @param fileName the document file name to search in
+     * @return
+     */
+    public double tf(final String term, final String fileName) {
+        long freq = 0;
+        int termDoc = 0;
+        try {
+            openReader();
+            boolean done = false;
+            // the docId the term was found on
+            termDoc = -1;
+            for (int doc = 0; doc < reader.numDocs() && !done; doc++) {
+                final String docName = reader.document(doc).get(LuceneConstant.FILE_NAME);
+                if (fileName.equals(docName)) {
+                    Terms terms = reader.getTermVector(doc, LuceneConstant.CONTENTS);
+                    TermsEnum itr = terms.iterator();
+                    BytesRef text = null;
+                    while ((text = itr.next()) != null) {
+                        if (text.utf8ToString().equals(term)) {
+                            // the term frequency of the term in the document
+                            freq = itr.totalTermFreq();
+                            done = true;
+                            termDoc = doc;
+                            break;
+                        }
+                    }
+                }
+            }
+            closeReader();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (termDoc == -1) {
+            return (double) freq;
+        }
+        return (double) freq / totalTermFreqDoc[termDoc];
     }
 
     /**

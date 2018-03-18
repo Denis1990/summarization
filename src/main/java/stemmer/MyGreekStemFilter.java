@@ -25,7 +25,7 @@ import java.io.IOException;
  * @lucene.experimental
  */
 
-public class MyGreekStemFilter extends TokenFilter {
+public final class MyGreekStemFilter extends TokenFilter {
     //private final GreekStemmer stemmer = new GreekStemmer();
     private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
     private final KeywordAttribute keywordAttr = addAttribute(KeywordAttribute.class);

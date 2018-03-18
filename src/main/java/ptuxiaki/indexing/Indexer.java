@@ -305,6 +305,14 @@ public class Indexer {
         return tfIdf;
     }
 
+    public double computeSentenceWeight(final String sentence, String file) throws IOException {
+        double tfIdf = 0;
+        for (String w : sentence.split("\\s+")) {
+            tfIdf += tf(w, file) * idf(w);
+        }
+        return tfIdf;
+    }
+
     public boolean openReader() throws IOException {
         if (reader == null || reader.getRefCount() <= 0) {
             reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexDirectory)));

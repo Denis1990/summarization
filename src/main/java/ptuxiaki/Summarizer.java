@@ -1,7 +1,6 @@
 package ptuxiaki;
 
 
-import com.google.common.primitives.Ints;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -21,7 +20,8 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.lang.Math.*;
+import static java.lang.Math.log10;
+import static java.lang.Math.round;
 import static ptuxiaki.utils.MathUtils.log2p;
 import static ptuxiaki.utils.MathUtils.log3;
 import static ptuxiaki.utils.PropertyKey.*;
@@ -87,6 +87,9 @@ public class Summarizer {
         String pw = properties.getProperty(PW).toLowerCase(); // sentence location weight function
         double compress = (double) Integer.parseInt(properties.getProperty(COMPRESS)) / 100;
 
+        int begin = filePath.lastIndexOf(File.separatorChar) + 1;
+        int end = filePath.lastIndexOf(".");
+        String fileName = filePath.substring(begin, end);
         extractor.setFile(filePath);
         List<String> sentences = extractor.extractSentences();
         List<String> titles = sentences.stream().filter(s -> s.equals(s.toUpperCase())).collect(Collectors.toList());
@@ -145,7 +148,7 @@ public class Summarizer {
 
             if (sw.equals(IDF)) {
                 // tfIdf sentence weight
-                sentWeight[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), docId);
+                sentWeight[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), fileName);
             } else if (sw.equals(ISF)) {
                 // ISF sentence weight
                 for (String word : stemSentence(sentences.get(i)).split("\\s+")) {
@@ -188,7 +191,7 @@ public class Summarizer {
             weights.add(Pair.of(wtt * tt[i] + (wst * sentWeight[i]), i));
         }
 
-        int summarySents = Ints.saturatedCast(size - (round(size * compress)));
+        int summarySents = (int)(size - (round(size * compress)));
         // If the document has too few sentences by default
         // write the 3 most important
         if (summarySents < 3) {
@@ -198,9 +201,7 @@ public class Summarizer {
         weights.sort(Comparator.reverseOrder());
         List<Integer> selSentIdx = weights.stream().map(Pair::getValue).collect(Collectors.toList()).subList(0, summarySents);
         selSentIdx.sort(Comparator.naturalOrder());
-        int begin = filePath.lastIndexOf(File.separatorChar);
-        int end = filePath.lastIndexOf(".");
-        String summaryFileName = filePath.substring(++begin, end).concat("_summary");
+        String summaryFileName = fileName.concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (int i = 0; i < summarySents; i++) {
                 fos.write(sentences.get(selSentIdx.get(i)).trim()

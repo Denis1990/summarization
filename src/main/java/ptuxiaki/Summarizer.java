@@ -203,7 +203,7 @@ public class Summarizer {
         String summaryFileName = filePath.substring(++begin, end).concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (int i = 0; i < summarySents; i++) {
-                fos.write(sentences.get(weights.get(i).getValue()).trim()
+                fos.write(sentences.get(selSentIdx.get(i)).trim()
                         .concat(System.lineSeparator())
                         .getBytes(Charset.forName("UTF-8"))
                 );

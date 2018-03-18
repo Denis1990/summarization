@@ -1,6 +1,7 @@
 package ptuxiaki.indexing;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.el.GreekAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -296,9 +297,6 @@ public class Indexer {
         }
 
         openReader();
-        boolean found = false;
-        boolean stored = false;
-
         List<LeafReaderContext> leaves = reader.leaves();
         int docs[] = new int[reader.numDocs()];
         for (int i = 0; i < docs.length; i++) {
@@ -317,9 +315,7 @@ public class Indexer {
 
                 if (storedData == null) continue;
 
-                String strData = storedData.get(LuceneConstant.CONTENTS);
                 String fileName = storedData.get(LuceneConstant.FILE_NAME);
-                Set<String> uniqueWords = new HashSet<>(Arrays.asList(strData.split("\\s+")));
 
                 TermsEnum tenums = terms.iterator();
 
@@ -328,7 +324,6 @@ public class Indexer {
                 System.out.println(fileName);
                 System.out.println(String.format("\t%-16s %-12s %-5s", "Stemmed", "DocFreq", "DocTf"));
                 while ((text = tenums.next()) != null) {
-//                    long docFreq = tenums.docFreq();
                     long docFreq = ctx.reader().docFreq(new Term(LuceneConstant.CONTENTS, text));
                     long tf = tenums.totalTermFreq();
                     System.out.println(String.format("\t%-17s%-13d%-23d", text.utf8ToString(), docFreq, tf));

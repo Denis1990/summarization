@@ -179,13 +179,13 @@ public class Summarizer {
             // finds more sentences than the sentence list
             // so guard against this case by setting sp
             // to sentence size if it exceeds that limit
-            int totalNumOfSentences = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
+//            int totalNumOfSentences = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
             int sp = paragraphs.size();
             j = 0;
             for (Paragraph par : paragraphs) {
                 final int p = par.getPositionInDocument();
                 final int sip = par.numberOfSentences();
-                for (int i = 0; i < sip; i++) {
+                for (int i = 0; i < sip && i < size; i++) {
                     final int spip = i;
                     sl[j++] = (double)((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
                 }

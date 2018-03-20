@@ -73,6 +73,12 @@ public class TextExtractor {
         return c == -1 ? text.length() : c-1;
     }
 
+    /**
+     * This methods extracts the sentences from a paragraph.
+     * Similarly to {@#extractSentences} this method uses {@link BreakIterator#getSentenceInstance() sentenceInstance}
+     * to scan through the text.
+     * @param text the paragraphs text.
+     */
     private List<String> getSentencesFromText(String text) {
         iterator = BreakIterator.getSentenceInstance(Locale.forLanguageTag(LANG_TAG));
         List<String> sents = new ArrayList<>();
@@ -139,12 +145,12 @@ public class TextExtractor {
             // BreakIterator can't recognize the title automatically since it does
             // not end with any of it's stop characters. In order to get the title
             // we need to rescan that first sentence using lineBreakIterator.
-            // This will create another additional boundary we need to account for
+            // This will create an additional boundary we need to account for
             // as we do in the if statement.
             // If the position is different (smaller) than the current position
             // returned from iterator, it means that the first sentence contains
             // the title as well as the rest of the text which constitutes a sentence
-            // by itself and need to be added in the list.
+            // by itself and needs to be added in the list.
             if (!titleFound) {
                 final int titlePos = findTitlePos(content.substring(start, current));
                 // titles are uppercase

@@ -355,6 +355,9 @@ public class Indexer {
         for (int i = 0; i < docs.length; i++) {
             docs[i] = i;
         }
+        // term --> totalDocFreq, totalTf
+        HashMap<String, Pair<Long, Long>> termsTfs = new HashMap<>();
+        System.out.println("============ STATISTICS PER DOCUMENT ===========");
         for (int doc : docs) {
             System.out.print("\n\nDocument: ");
             for (LeafReaderContext ctx : leaves) {
@@ -380,9 +383,23 @@ public class Indexer {
                     long docFreq = ctx.reader().docFreq(new Term(LuceneConstant.CONTENTS, text));
                     long tf = tenums.totalTermFreq();
                     System.out.println(String.format("\t%-17s%-13d%-23d", text.utf8ToString(), docFreq, tf));
+                    if (termsTfs.containsKey(text.utf8ToString())) {
+                        termsTfs.put(text.utf8ToString(),
+                                     Pair.of(termsTfs.get(text.utf8ToString()).getLeft(),termsTfs.get(text.utf8ToString()).getRight() + tf)
+                        );
+                    } else {
+                        termsTfs.put(text.utf8ToString(), Pair.of(docFreq, tf));
+                    }
                 }
             }
         }
+        System.out.println("=====================================\n\n\n");
+        System.out.println("=========AGGREGATE STATISTICS===========\n");
+        System.out.println(String.format("%-16s %-12s %-5s", "Stem", "Documents", "Total term freq"));
+        for (Map.Entry<String, Pair<Long, Long>> e : termsTfs.entrySet()) {
+            System.out.println(String.format("%-17s%-13d%-23d", e.getKey(), e.getValue().getLeft(), e.getValue().getRight()));
+        }
+        System.out.println("=====================================");
         closeReader();
     }
 }

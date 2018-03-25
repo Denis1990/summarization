@@ -19,10 +19,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-import static java.lang.Math.log10;
-import static java.lang.Math.round;
+import static java.lang.Math.*;
 import static ptuxiaki.utils.MathUtils.log2p;
 import static ptuxiaki.utils.MathUtils.log3;
 import static ptuxiaki.utils.PropertyKey.*;
@@ -179,7 +177,8 @@ public class Summarizer {
             // finds more sentences than the sentence list
             // so guard against this case by setting sp
             // to sentence size if it exceeds that limit
-//            int totalNumOfSentences = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
+            int totalNumOfSentences = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
+            totalNumOfSentences = min(totalNumOfSentences, sentences.size());
             int sp = paragraphs.size();
             j = 0;
             for (Paragraph par : paragraphs) {
@@ -187,7 +186,9 @@ public class Summarizer {
                 final int sip = par.numberOfSentences();
                 for (int i = 0; i < sip && i < size; i++) {
                     final int spip = i;
-                    sl[j++] = (double)((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
+                    if (j < totalNumOfSentences) {
+                        sl[j++] = (double) ((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
+                    }
                 }
             }
         }
@@ -201,7 +202,7 @@ public class Summarizer {
         int summarySents = (int)(size - (round(size * compress)));
         // If the document has too few sentences by default
         // write the 3 most important
-        if (summarySents < 3) {
+        if (summarySents < 3 && size > 3) {
             summarySents = 3;
         }
 

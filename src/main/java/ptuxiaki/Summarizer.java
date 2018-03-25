@@ -134,11 +134,11 @@ public class Summarizer {
         double tt[] = new double[size];
         double sentWeight[] = new double[size];
         double sl[] = new double[size];
-        int titleTerms = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.TITLE)).count();
-        int mTitleTerms = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.SUBTITLE)).count();
+        int titleTermsCount = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.TITLE)).count();
+        int mTitleTermsCount = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.SUBTITLE)).count();
         // in order to avoid calculating log(0)
-        if (mTitleTerms == 0) {
-            mTitleTerms = 1;
+        if (mTitleTermsCount == 0) {
+            mTitleTermsCount = 1;
         }
 
         // the list that holds the weight of each sentence.
@@ -148,7 +148,7 @@ public class Summarizer {
         for (int i = 0; i < size; i++) {
             // use log functions to determine importance
             // see paper B47
-            tt[i] = titleKeywords(sentences.get(i), titleWords, titleTerms, mTitleTerms);
+            tt[i] = titleKeywords(sentences.get(i), titleWords, titleTermsCount, mTitleTermsCount);
 
             if (sw.equals(IDF)) {
                 // tfIdf sentence weight

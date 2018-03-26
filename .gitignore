@@ -82,4 +82,8 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-
+dist/
+log/
+summaries/
+summaries*
+*.patch

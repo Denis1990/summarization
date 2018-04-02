@@ -24,6 +24,8 @@ import static java.lang.Math.*;
 import static ptuxiaki.utils.MathUtils.log2p;
 import static ptuxiaki.utils.MathUtils.log3;
 import static ptuxiaki.utils.PropertyKey.*;
+import static ptuxiaki.utils.SentenceUtils.removeSpecialChars;
+import static ptuxiaki.utils.SentenceUtils.removeWhiteSpaces;
 import static ptuxiaki.utils.SentenceUtils.stemSentence;
 
 
@@ -72,11 +74,11 @@ public class Summarizer {
                 }
             }
         }
+        if (tt == 0 && mtt == 0) return 0;
         return (a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw)));
     }
 
     private void summarizeFile(final String filePath, int docId) throws IOException {
-
         /***********************************Load properties values************************************************/
         int minWords = Integer.parseInt(properties.getProperty(MINIMUN_WORDS));
         double wsl = Double.parseDouble(properties.getProperty(WSL)); // weight sentence location
@@ -87,8 +89,7 @@ public class Summarizer {
         double compress = (double) Integer.parseInt(properties.getProperty(COMPRESS)) / 100;
 
         int begin = filePath.lastIndexOf(File.separatorChar) + 1;
-        int end = filePath.lastIndexOf(".");
-        String fileName = filePath.substring(begin, end);
+        String fileName = filePath.substring(begin);
         extractor.setFile(filePath);
         List<String> sentences = extractor.extractSentences();
         List<String> titles = sentences.stream().filter(s -> s.equals(s.toUpperCase())).collect(Collectors.toList());
@@ -143,6 +144,7 @@ public class Summarizer {
         // The double value is the the weight while the int value
         // is the index in the list of sentences
         List<Pair<Double, Integer>> weights = new ArrayList<>();
+        LOG.info(String.format("========%s========", fileName));
         for (int i = 0; i < size; i++) {
             // use log functions to determine importance
             // see paper B47
@@ -154,9 +156,14 @@ public class Summarizer {
             } else if (sw.equals(ISF)) {
                 // ISF sentence weight
                 for (String word : stemSentence(sentences.get(i)).split("\\s+")) {
-                    sentWeight[i] += indexer.tf(word, docId) * log10((double)size / termsOccurrences.getOrDefault(word, 1));
+                    final double tfVal = indexer.tf(word, fileName);
+                    final double isfVal = log10((double)size / termsOccurrences.getOrDefault(word, 1));
+                    LOG.info(String.format("\tword: %s tf: %f isf: %f", word, tfVal, isfVal));
+                    sentWeight[i] += tfVal * isfVal;
                 }
+                LOG.info(String.format("sentence: %s tfIsf: %f", stemSentence(sentences.get(i)), sentWeight[i]));
             }
+            LOG.info(String.format("sentence: %s tt: %f", stemSentence(sentences.get(i)), tt[i]));
         }
 
         // calculate the weight from sentence location

@@ -3,6 +3,7 @@ package ptuxiaki;
 import org.apache.tika.exception.TikaException;
 import org.xml.sax.SAXException;
 import ptuxiaki.extraction.TextExtractor;
+import ptuxiaki.utils.SentenceUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,7 +18,7 @@ public class ExtractorDemo {
             List<String> s = extractor.extractSentences();
             int j = 0;
             for (String i : s) {
-                System.out.println(String.format("%d sentence: %s", ++j, i.replaceAll("\\s", " ")));
+                System.out.println(String.format("%d sentence: %s", ++j, SentenceUtils.stemSentence(i)));
             }
         }
     }

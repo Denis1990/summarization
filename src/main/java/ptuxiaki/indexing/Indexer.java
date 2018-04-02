@@ -2,7 +2,6 @@ package ptuxiaki.indexing;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.el.GreekAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -13,6 +12,9 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ptuxiaki.Summarizer;
 import ptuxiaki.utils.LuceneConstant;
 import stemmer.MyGreekAnalyzer;
 
@@ -26,6 +28,8 @@ import static java.lang.Math.log10;
 
 
 public class Indexer {
+    private static final Logger LOG = LoggerFactory.getLogger(Summarizer.class);
+
     public static final String DEFAULT_INDEX_DIR = System.getProperty("user.home") + File.separator + "index";
     public static final String TERM_FREQ_DOC_TFD = "termFreqDoc.tfd";
 
@@ -308,8 +312,12 @@ public class Indexer {
     public double computeSentenceWeight(final String sentence, String file) throws IOException {
         double tfIdf = 0;
         for (String w : sentence.split("\\s+")) {
-            tfIdf += tf(w, file) * idf(w);
+            final double tfVal = tf(w, file);
+            final double idfVal = idf(w);
+            tfIdf += tfVal * idfVal;
+            LOG.info(String.format("\tword: %s tf: %f idf: %f", w, tfVal, idfVal));
         }
+        LOG.info(String.format("sentence: %s tfIdf: %f", sentence, tfIdf));
         return tfIdf;
     }
 

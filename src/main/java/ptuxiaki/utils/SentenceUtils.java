@@ -42,7 +42,7 @@ public class SentenceUtils {
     }
 
     public static String removeSpecialChars(final String word) {
-        return word.replaceAll("[@#$%^&*()!\"',»«.\\-:]", "").trim();
+        return word.replaceAll("[@#$%^&*()!\"',»«.\\-:]", "");
     }
 
     public static String removeWhiteSpaces(final String sentence) {

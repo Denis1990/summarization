@@ -20,8 +20,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static ptuxiaki.utils.SentenceUtils.removeSpecialChars;
-
 public class TextExtractor {
     private static final String LANG_TAG = "el-GR";
     private BreakIterator iterator;
@@ -61,7 +59,10 @@ public class TextExtractor {
      * @return the position found by the iterator
      */
     private int findTitlePos(String text) {
-        text = removeSpecialChars(text);
+        final int oldLength = text.length();
+        // replace " symbols as they get in the way of identifying capital case characters
+        text = text.replaceAll("['\"]", "");
+        final int diff = oldLength - text.length();
         BreakIterator iterator = BreakIterator.getLineInstance(Locale.forLanguageTag(LANG_TAG));
         iterator.setText(text);
         int c;
@@ -74,7 +75,12 @@ public class TextExtractor {
                 break;
             }
         }
-        return c == -1 ? text.length() : c-1;
+        // account for the lost letter when performing removeSpecialChars
+        if (c == -1) {
+            return text.length() + diff/2;
+        } else {
+            return (c-1) + diff/2;
+        }
     }
 
     /**
@@ -157,7 +163,7 @@ public class TextExtractor {
             // by itself and needs to be added in the list.
             if (!titleFound) {
                 // clean the text portion of characters tha may mess up the title recognition
-                final int titlePos = findTitlePos(removeSpecialChars(content.substring(start, current)));
+                final int titlePos = findTitlePos(content.substring(start, current));
                 // titles are uppercase
                 sentences.add(content.substring(start, titlePos).toUpperCase().trim());
                 start = titlePos+1;
@@ -183,8 +189,13 @@ public class TextExtractor {
                 steps = 4;
                 continue;
             }
-
-            String str = content.substring(start, current);
+            if (start > current) {
+                start = current;
+                current = iterator.next();
+                steps = 4;
+                continue;
+            }
+            String str = content.substring(start, current).replaceAll("['\"]", "");
             int strLen = str.length();
             int cur = 0;
             ArrayList<Integer> positions = new ArrayList<>();

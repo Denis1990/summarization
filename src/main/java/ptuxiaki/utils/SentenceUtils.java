@@ -5,10 +5,9 @@ import org.apache.lucene.analysis.el.GreekAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
 import stemmer.NNKStemmerAdapter;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 public class SentenceUtils {
+
+//    private static GreekStemmer greekStemmer = new GreekStemmer();
 
     private static NNKStemmerAdapter grStemmer = new NNKStemmerAdapter();
 
@@ -27,17 +26,12 @@ public class SentenceUtils {
 
     public static String stemWord(String word) {
         final int l = NNKStemmerAdapter.stemWord(word.toCharArray(), word.length());
+//        final int l = greekStemmer.stem(word.toCharArray(), word.length());
         return word.substring(0, l);
     }
 
     public static String stemSentence(final String sentence) {
-        String [] words = Arrays.stream(removeWhiteSpaces(sentence).split("\\s+"))
-                .filter(s -> !s.isEmpty())
-                .map(String::toLowerCase)
-                .map(SentenceUtils::replaceSigma)
-                .map(SentenceUtils::removeTonation)
-                .map(SentenceUtils::removeSpecialChars)
-                .collect(Collectors.toList()).toArray(new String[]{});
+        String [] words = removeWhiteSpaces(replaceSigma(removeTonation(removeSpecialChars(sentence.toLowerCase())))).split("\\s+");
         StrBuilder strBuilder = new StrBuilder();
         for (String w : words) {
             if (!STOP_WORDS.contains(w)) {
@@ -48,7 +42,7 @@ public class SentenceUtils {
     }
 
     public static String removeSpecialChars(final String word) {
-        return word.replaceAll("[@#$%^&*()!\"\\,»«\\.-:]", " ").trim();
+        return word.replaceAll("[@#$%^&*()!\"',»«.\\-:]", "").trim();
     }
 
     public static String removeWhiteSpaces(final String sentence) {

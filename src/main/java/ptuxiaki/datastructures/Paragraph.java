@@ -49,6 +49,10 @@ public class Paragraph {
         return pos;
     }
 
+    public boolean isEmpty() {
+        return sentences.isEmpty();
+    }
+
     @Override
     public String toString() {
         StrBuilder paragraph = new StrBuilder();

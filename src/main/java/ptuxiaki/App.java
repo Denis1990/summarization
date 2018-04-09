@@ -5,13 +5,11 @@ import ptuxiaki.datastructures.Conf;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Properties;
 
 public class App {
     public static void main(String[] args) throws IOException {
         String dir = null;
         String properties = null;
-        Properties props = null;
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("directory") || args[i].equals("dir")) {

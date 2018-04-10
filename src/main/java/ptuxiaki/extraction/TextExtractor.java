@@ -202,14 +202,14 @@ public class TextExtractor {
             int pos;
             // find all the newline characters in the str segment
             while ((pos = str.indexOf('\n', cur)) != -1 ) {
-                // add one after pos except when you reach the end of string
-                if (pos + 1 == strLen) {
-                    positions.add(pos);
-                } else {
-                    positions.add(pos+1);
-                }
+                positions.add((pos+1) % strLen);
                 cur = cur + pos + 1;
             }
+            // remove the last number as it will always be 0
+            if (positions.size() > 0) {
+                positions.remove(positions.size() - 1);
+            }
+
             cur = 0;
             while (positions.size() > 0) {
                 int p = positions.remove(0);

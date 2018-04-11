@@ -195,7 +195,7 @@ public class TextExtractor {
                 steps = 4;
                 continue;
             }
-            String str = content.substring(start, current).replaceAll("['\"]", "");
+            String str = content.substring(start, current).replaceAll("['\"]", "").trim();
             int strLen = str.length();
             int cur = 0;
             ArrayList<Integer> positions = new ArrayList<>();
@@ -203,12 +203,10 @@ public class TextExtractor {
             // find all the newline characters in the str segment
             while ((pos = str.indexOf('\n', cur)) != -1 ) {
                 positions.add((pos+1) % strLen);
-                cur = cur + pos + 1;
+                cur = pos + 1;
             }
-            // remove the last number as it will always be 0
-            if (positions.size() > 0) {
-                positions.remove(positions.size() - 1);
-            }
+            // remove last entry if it 0
+            positions.removeIf(integer -> integer == 0);
 
             cur = 0;
             while (positions.size() > 0) {

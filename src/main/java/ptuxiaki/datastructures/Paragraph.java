@@ -56,10 +56,12 @@ public class Paragraph {
     @Override
     public String toString() {
         StrBuilder paragraph = new StrBuilder();
+        paragraph.append("[");
         for (Triple<String, Integer, Integer> t : sentences) {
             paragraph.append(t.getLeft().trim());
             paragraph.append(",");
         }
-        return String.format("<%s>%n", paragraph.toString());
+        paragraph.append("]");
+        return paragraph.toString();
     }
 }

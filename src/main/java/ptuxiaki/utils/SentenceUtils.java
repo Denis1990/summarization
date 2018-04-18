@@ -9,8 +9,6 @@ public class SentenceUtils {
 
 //    private static GreekStemmer greekStemmer = new GreekStemmer();
 
-    private static NNKStemmerAdapter grStemmer = new NNKStemmerAdapter();
-
     private static CharArraySet STOP_WORDS = GreekAnalyzer.getDefaultStopSet();
 
     static {

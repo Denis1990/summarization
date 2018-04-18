@@ -2,7 +2,6 @@ package stemmer;
 
 
 import nnkstemmer.word_node;
-import org.apache.commons.collections4.multiset.SynchronizedMultiSet;
 
 import java.util.ArrayList;
 
@@ -20,9 +19,9 @@ public class NNKStemmerAdapter {
             rswas(words);
             final word_node wn = words.remove(0);
             if (wn.getType() == word_node.ShortWord) {
-                return 0;
+                return size;
             } else if (wn.getType() == word_node.StopWord) {
-                return 0;
+                return size;
             }
             return (wn.getNormalized() == null) ? wn.getWord().length() : wn.getNormalized().length();
         } catch (Exception e) {

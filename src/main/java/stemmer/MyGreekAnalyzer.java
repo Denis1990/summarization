@@ -4,7 +4,6 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.StopFilter;
-import org.apache.lucene.analysis.el.GreekAnalyzer;
 import org.apache.lucene.analysis.el.GreekLowerCaseFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.standard.StandardFilter;
@@ -33,7 +32,7 @@ public class MyGreekAnalyzer extends StopwordAnalyzerBase {
 
         static {
             try {
-                DEFAULT_SET = loadStopwordSet(false, GreekAnalyzer.class, DEFAULT_STOPWORD_FILE, "#");
+                DEFAULT_SET = loadStopwordSet(false, MyGreekAnalyzer.class, DEFAULT_STOPWORD_FILE, "#");
             } catch (IOException ex) {
                 // default set should always be present as it is part of the
                 // distribution (JAR)
@@ -41,6 +40,23 @@ public class MyGreekAnalyzer extends StopwordAnalyzerBase {
             }
         }
     }
+
+    /**
+     * Returns a set of default Greek-stopwords
+     * @return a set of default Greek-stopwords
+     */
+    public static final CharArraySet getDefaultStopSet(){
+        return MyGreekAnalyzer.DefaultSetHolder.DEFAULT_SET;
+    }
+
+    public MyGreekAnalyzer(final CharArraySet stopwords) {
+        super(stopwords);
+    }
+
+    public MyGreekAnalyzer() {
+        this(MyGreekAnalyzer.DefaultSetHolder.DEFAULT_SET);
+    }
+
     @Override
     protected TokenStreamComponents createComponents(String fieldName) {
         final Tokenizer source;

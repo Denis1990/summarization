@@ -136,6 +136,10 @@ public class Summarizer {
         if (mTitleTermsCount == 0) {
             mTitleTermsCount = 1;
         }
+        System.out.println(String.format("========%s========", fileName));
+        paragraphs.forEach(System.out::println);
+        System.out.println("     Number of sentences from text extraction: " + size);
+        System.out.println("Number of sentences from paragraph extraction: " + paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum());
 
         // the list that holds the weight of each sentence.
         // The double value is the the weight while the int value
@@ -150,6 +154,7 @@ public class Summarizer {
             if (sw.equals(IDF)) {
                 // tfIdf sentence weight
                 sentWeight[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), fileName);
+                LOG.info(String.format("sentence: %s tt: %f", stemSentence(sentences.get(i)), tt[i]));
             } else if (sw.equals(ISF)) {
                 // ISF sentence weight
                 for (String word : stemSentence(sentences.get(i)).split("\\s+")) {

@@ -24,8 +24,6 @@ import static java.lang.Math.*;
 import static ptuxiaki.utils.MathUtils.log2p;
 import static ptuxiaki.utils.MathUtils.log3;
 import static ptuxiaki.utils.PropertyKey.*;
-import static ptuxiaki.utils.SentenceUtils.removeSpecialChars;
-import static ptuxiaki.utils.SentenceUtils.removeWhiteSpaces;
 import static ptuxiaki.utils.SentenceUtils.stemSentence;
 
 

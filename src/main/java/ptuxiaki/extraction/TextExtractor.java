@@ -77,6 +77,7 @@ public class TextExtractor {
      * This methods extracts the sentences from a paragraph.
      * Similarly to {@#extractSentences} this method uses {@link BreakIterator#getSentenceInstance() sentenceInstance}
      * to scan through the text.
+     * @implNote Scan each portion of text returned from the iterator object and look for small words like υπ. Δρ. etc
      * @param text the paragraphs text.
      */
     private List<String> getSentencesFromText(String text) {

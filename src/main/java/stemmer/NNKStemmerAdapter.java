@@ -2,7 +2,6 @@ package stemmer;
 
 
 import nnkstemmer.word_node;
-import org.apache.commons.collections4.multiset.SynchronizedMultiSet;
 
 import java.util.ArrayList;
 

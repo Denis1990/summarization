@@ -77,7 +77,7 @@ public class Indexer {
         this.metadata = new Metadata();
         this.tika = new Tika();
         // TODO maybe this needs to be set dynamically instead of this fixed value
-        this.tika.setMaxStringLength(10 * 1024 * 1024);
+        //this.tika.setMaxStringLength(10 * 1024 * 1024);
     }
 
     /**
@@ -387,7 +387,7 @@ public class Indexer {
                 restoreFromFile();
                 System.out.println(fileName);
                 System.out.println(String.format("\t%-16s %-12s %-5s", "Stemmed", "DocFreq", "DocTf"));
-                while ((text = tenums.next()) != null) {
+                while ((text = tenums.next()) != null && text.length > 0) {
                     long docFreq = ctx.reader().docFreq(new Term(LuceneConstant.CONTENTS, text));
                     long tf = tenums.totalTermFreq();
                     System.out.println(String.format("\t%-17s%-13d%-23d", text.utf8ToString(), docFreq, tf));

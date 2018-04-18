@@ -9,6 +9,7 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
+import ptuxiaki.datastructures.Conf;
 import ptuxiaki.datastructures.Paragraph;
 
 import java.io.File;
@@ -58,19 +59,28 @@ public class TextExtractor {
      * @return the position found by the iterator
      */
     private int findTitlePos(String text) {
+        final int oldLength = text.length();
+        // replace " symbols as they get in the way of identifying capital case characters
+        text = text.replaceAll("['\"]", "");
+        final int diff = oldLength - text.length();
         BreakIterator iterator = BreakIterator.getLineInstance(Locale.forLanguageTag(LANG_TAG));
         iterator.setText(text);
         int c;
         // iterator returns values from [0, text.length()] so we need to
         // guard for NullPointerException in the inner if clause
-        while ((c = iterator.next()) != BreakIterator.DONE && c < text.length())  {
+        while ((c = iterator.next()) != BreakIterator.DONE && c < text.length()) {
                 /*npe here is c == text.length */
                 /*                          v  */
             if (Character.isUpperCase(text.charAt(c)) && text.charAt(c-1) == '\n') {
                 break;
             }
         }
-        return c == -1 ? text.length() : c-1;
+        // account for the lost letter when performing removeSpecialChars
+        if (c == -1) {
+            return text.length() + diff/2;
+        } else {
+            return (c-1) + diff/2;
+        }
     }
 
     /**
@@ -153,6 +163,7 @@ public class TextExtractor {
             // the title as well as the rest of the text which constitutes a sentence
             // by itself and needs to be added in the list.
             if (!titleFound) {
+                // clean the text portion of characters tha may mess up the title recognition
                 final int titlePos = findTitlePos(content.substring(start, current));
                 // titles are uppercase
                 sentences.add(content.substring(start, titlePos).toUpperCase().trim());
@@ -163,35 +174,41 @@ public class TextExtractor {
             // go back at most 4 steps
             // find the position of dot char
             int idx = current;
-            while (steps-- > 0 && content.charAt(idx--) != '.')
-                ;
+            while (steps-- > 0 && content.charAt(idx) != '.') {
+                idx--;
+            }
+
             // find the position of the first whitespace char before idx
-            int wIdx = idx;
-            while (!Character.isWhitespace(content.charAt(wIdx--)))
-                ;
+            int wIdx = idx - 1;
+            while (!Character.isWhitespace(content.charAt(wIdx))) {
+                wIdx--;
+            }
 
             // check if it is a small word like υπ. Δρ. κ. etc
-            if (idx - wIdx <= 4) {
+            if (idx - wIdx <= 3) {
                 current = iterator.next();
                 steps = 4;
                 continue;
             }
-
-            String str = content.substring(start, current);
+            if (start > current) {
+                start = current;
+                current = iterator.next();
+                steps = 4;
+                continue;
+            }
+            String str = content.substring(start, current).replaceAll("['\"]", "").trim();
             int strLen = str.length();
             int cur = 0;
             ArrayList<Integer> positions = new ArrayList<>();
             int pos;
             // find all the newline characters in the str segment
             while ((pos = str.indexOf('\n', cur)) != -1 ) {
-                // add one after pos except when you reach the end of string
-                if (pos + 1 == strLen) {
-                    positions.add(pos);
-                } else {
-                    positions.add(pos+1);
-                }
-                cur = cur + pos + 1;
+                positions.add((pos+1) % strLen);
+                cur = pos + 1;
             }
+            // remove last entry if it 0
+            positions.removeIf(integer -> integer == 0);
+
             cur = 0;
             while (positions.size() > 0) {
                 int p = positions.remove(0);
@@ -251,16 +268,21 @@ public class TextExtractor {
 
         int parPos = 0; // position of paragraph in document
         int sentGlPos= 0; // sentence global position. The position of the sentence inside the document
+        int minWord = Conf.minimumWords();
         for (String p : paragraphsBlocks) {
             if (p.trim().isEmpty()) continue;
             int sentPos = 1; // the position of the sentence inside the paragraph
             Paragraph par = new Paragraph(parPos++);
             for (String s : getSentencesFromText(p.trim())) {
-                par.addSentence(Triple.of(s.trim(), sentPos, sentGlPos));
-                sentPos++;
-                sentGlPos++;
+                if (s.split("\\s+").length > minWord) {
+                    par.addSentence(Triple.of(s.trim(), sentPos, sentGlPos));
+                    sentPos++;
+                    sentGlPos++;
+                }
             }
-            paragraphs.add(par);
+            if (!par.isEmpty()) {
+                paragraphs.add(par);
+            }
         }
         return paragraphs;
     }

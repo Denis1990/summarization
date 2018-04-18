@@ -5,6 +5,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ptuxiaki.datastructures.Conf;
 import ptuxiaki.datastructures.Paragraph;
 import ptuxiaki.datastructures.SentenceType;
 import ptuxiaki.extraction.TextExtractor;
@@ -33,10 +34,8 @@ public class Summarizer {
     private static Logger LOG = LoggerFactory.getLogger(Summarizer.class);
     private TextExtractor extractor;
     private Indexer indexer;
-    private final Properties properties;
 
-    public Summarizer(final Properties properties) {
-        this.properties = properties;
+    public Summarizer() {
         this.extractor = new TextExtractor();
         if (!Files.exists(SUMMARY_DIR)) {
             try {
@@ -60,8 +59,8 @@ public class Summarizer {
      * @return a double
      */
     private double titleKeywords(String sentence, Set<Pair<String, SentenceType>> titleWords, int tw, int mtw) {
-        double a = Double.valueOf(properties.getProperty("a", "0.6"));
-        double b = Double.valueOf(properties.getProperty("b", "0.4"));
+        double a = Double.valueOf(Conf.getOrDefault("a", "0.6"));
+        double b = Double.valueOf(Conf.getOrDefault("b", "0.4"));
         int tt = 0, mtt = 0;
         for (Pair<String, SentenceType> word : titleWords) {
             if (stemSentence(sentence).contains(word.getKey())) {
@@ -78,13 +77,13 @@ public class Summarizer {
 
     private void summarizeFile(final String filePath, int docId) throws IOException {
         /***********************************Load properties values************************************************/
-        int minWords = Integer.parseInt(properties.getProperty(MINIMUN_WORDS));
-        double wsl = Double.parseDouble(properties.getProperty(WSL)); // weight sentence location
-        double wst = Double.parseDouble(properties.getProperty(WST)); // weight sentence terms
-        double wtt = Double.parseDouble(properties.getProperty(WTT)); // weight title terms
-        String sw = properties.getProperty(SW).toLowerCase(); // sentence weight function
-        String pw = properties.getProperty(PW).toLowerCase(); // sentence location weight function
-        double compress = (double) Integer.parseInt(properties.getProperty(COMPRESS)) / 100;
+        int minWords = Conf.minimumWords();
+        double wsl = Conf.sentenceLocationWeight(); // weight sentence location
+        double wst = Conf.sentenceTermsWeight(); // weight sentence terms
+        double wtt = Conf.titleTermsWeight(); // weight title terms
+        String sw = Conf.sentenceWeight(); // sentence weight function
+        String pw = Conf.paragraphWeight(); // sentence location weight function
+        double compress = Conf.compressRation() / 100.0;
 
         int begin = filePath.lastIndexOf(File.separatorChar) + 1;
         String fileName = filePath.substring(begin);
@@ -137,6 +136,10 @@ public class Summarizer {
         if (mTitleTermsCount == 0) {
             mTitleTermsCount = 1;
         }
+        System.out.println(String.format("========%s========", fileName));
+        paragraphs.forEach(System.out::println);
+        System.out.println("     Number of sentences from text extraction: " + size);
+        System.out.println("Number of sentences from paragraph extraction: " + paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum());
 
         // the list that holds the weight of each sentence.
         // The double value is the the weight while the int value
@@ -151,6 +154,7 @@ public class Summarizer {
             if (sw.equals(IDF)) {
                 // tfIdf sentence weight
                 sentWeight[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), fileName);
+                LOG.info(String.format("sentence: %s tt: %f", stemSentence(sentences.get(i)), tt[i]));
             } else if (sw.equals(ISF)) {
                 // ISF sentence weight
                 for (String word : stemSentence(sentences.get(i)).split("\\s+")) {
@@ -159,9 +163,8 @@ public class Summarizer {
                     LOG.info(String.format("\tword: %s tf: %f isf: %f", word, tfVal, isfVal));
                     sentWeight[i] += tfVal * isfVal;
                 }
-                LOG.info(String.format("sentence: %s tfIsf: %f", stemSentence(sentences.get(i)), sentWeight[i]));
+                LOG.info(String.format("sentence: %s tfIsf: %f tt: %f", stemSentence(sentences.get(i)), sentWeight[i], tt[i]));
             }
-            LOG.info(String.format("sentence: %s tt: %f", stemSentence(sentences.get(i)), tt[i]));
         }
 
         // calculate the weight from sentence location
@@ -217,7 +220,8 @@ public class Summarizer {
         String summaryFileName = fileName.concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (int i = 0; i < summarySents; i++) {
-                fos.write(sentences.get(selSentIdx.get(i)).trim()
+                fos.write(sentences.get(selSentIdx.get(i))
+                        .trim()
                         .concat(System.lineSeparator())
                         .getBytes(Charset.forName("UTF-8"))
                 );

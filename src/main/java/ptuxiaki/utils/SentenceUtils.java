@@ -29,7 +29,7 @@ public class SentenceUtils {
     }
 
     public static String stemSentence(final String sentence) {
-        String [] words = removeWhiteSpaces(replaceSigma(removeTonation(removeSpecialChars(sentence.toLowerCase())))).split("\\s+");
+        String [] words = removeWhiteSpaces(replaceSigma(removeTonation(removeNumbers((removeSpecialChars(sentence.toLowerCase())))))).split("\\s+");
         StrBuilder strBuilder = new StrBuilder();
         for (String w : words) {
             if (!STOP_WORDS.contains(w)) {
@@ -40,7 +40,11 @@ public class SentenceUtils {
     }
 
     public static String removeSpecialChars(final String word) {
-        return word.replaceAll("[@#$%^&*()!\"',»«.\\-:]", "");
+        return word.replaceAll("[@#$%^&*();!\"',»«.\\-:…]", "");
+    }
+
+    public static String removeNumbers(final String word) {
+        return word.replaceAll("[0-9]", "");
     }
 
     public static String removeWhiteSpaces(final String sentence) {

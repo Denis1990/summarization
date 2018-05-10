@@ -1,6 +1,5 @@
 package ptuxiaki.datastructures;
 
-import org.apache.commons.lang3.text.StrBuilder;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.ArrayList;
@@ -49,13 +48,17 @@ public class Paragraph {
         return pos;
     }
 
+    public List<Triple<String, Integer, Integer>> getAllSentences() {
+        return sentences;
+    }
+
     public boolean isEmpty() {
         return sentences.isEmpty();
     }
 
     @Override
     public String toString() {
-        StrBuilder paragraph = new StrBuilder();
+        StringBuilder paragraph = new StringBuilder();
         paragraph.append("[");
         for (Triple<String, Integer, Integer> t : sentences) {
             paragraph.append(t.getLeft().trim());

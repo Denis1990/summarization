@@ -1,59 +1,52 @@
 package ptuxiaki.extraction;
 
+
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import ptuxiaki.datastructures.Paragraph;
 
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 public class TestParagraphExtraction {
 
     private TextExtractor extractor;
-    private String [] files;
+    private String [] paragraphs;
 
 
     @Before
     public void init() {
-        this.files = new String[] {
-                "ptuxiaki/extraction/athina.pdf", "ptuxiaki/extraction/dias.txt", "ptuxiaki/extraction/dionusos.docx"
-        };
+        paragraphs = new String[2];
+        paragraphs[0]  = "Το σύνολο των μελών του Υπουργικού Συμβουλίου κουνούσε προχθές με συγκατάβαση " +
+                "το κεφάλι κάθε φορά που ο κ. Σημίτης τόνιζε ότι είναι απόλυτη ανάγκη να υπάρξουν άμεσες," +
+                " καίριες και κυρίως αποτελεσματικές λύσεις στα προβλήματα που αντιμετωπίζει ο πολίτης" +
+                " κάθε μέρα. Στην πραγματικότητα, ούτε ένας πίστευε (και πιστεύει) ότι αυτές οι λύσεις" +
+                " μπορεί πλέον να είναι εφικτές με την αμεσότητα που απαιτεί ο Πρωθυπουργός. Διότι " +
+                "προφανώς δεν έρχονται από τον ουρανό και δεν υπακούουν σε κανέναν κανόνα μαγείας…";
+
+        paragraphs[1] = "Λερναία Ύδρα. \"Η αντιμετώπιση της καθημερινότητας μοιάζει με τη Λερναία Ύδρα. " +
+                "Ένα πρόβλημα αντιμετωπίζεις, δύο ξεπετάγονται στη θέση του\" σχολίαζε αργότερα ένας υπουργός. " +
+                "Απέφυγε να προσθέσει ότι \"πρέπει να κάνουμε ό,τι και ο Ηρακλής, για να εξοντώσουμε το τέρας\", " +
+                "αλλά και να το έλεγε, κανείς δεν θα τον πίστευε. Η πρακτική άλλωστε τού \"πονάει δόντι, κόβω " +
+                "κεφάλι\" είναι μια καλή τακτική όταν έχεις όλο τον χρόνο μπροστά σου. Όχι τώρα, που ο " +
+                "χρόνος τρέχει και στο βάθος διακρίνεται ήδη το τέλος της διαδρομής… Αν κανείς θέλει να " +
+                "εξετάσει την κατάσταση με βάση τα πραγματικά στοιχεία, ασφαλώς θα καταλήξει σε μια βασική " +
+                "εκτίμηση και δύο σενάρια: Η εκτίμηση αφορά το πόσο κοντά ή το πόσο μακριά είναι οι εκλογές. " +
+                "Ό,τι και να λένε ο Πρωθυπουργός και τα κυβερνητικά στελέχη, ο πραγματικός χρόνος καθαρής " +
+                "διακυβέρνησης της χώρας είναι πλέον λιγότερο από έξι μήνες - μόλις πέντε για την ακρίβεια. " +
+                "Όση και η διάρκεια της ελληνικής προεδρίας. Στο τέλος του Ιουνίου, με την αυλαία της προεδρίας, " +
+                "ανοίγει μια άλλη αυλαία, αυτή της παρατεταμένης προεκλογικής περιόδου που θα οδηγήσει στις εκλογές.";
         this.extractor = new TextExtractor();
     }
 
     @Test
-    public void testParagraphsInAthina() {
-        extractor.setFile(this.getClass().getClassLoader().getResource(this.files[0]).getFile());
-        // 9 sentences in the document
-        List<Paragraph> paragraphList = extractor.extractParagraphs(9);
-        assertEquals(paragraphList.size(), 2);
-        assertEquals(paragraphList.get(0).numberOfSentences(), 4);
-        assertEquals(
-                paragraphList.get(0).getIthSentence(0),
-                "Η Αθηνά, κατά την Ελληνική μυθολογία, ήταν η θεά της σοφίας, της στρατηγικής και του πολέμου."
-        );
-    }
-    @Test
-    public void testParagraphsInDias() {
-        extractor.setFile(this.getClass().getClassLoader().getResource(this.files[1]).getFile());
-        // 12 sentences in the document
-        List<Paragraph> paragraphList = extractor.extractParagraphs(12);
-        assertEquals(paragraphList.size(), 1);
-        assertEquals(paragraphList.get(0).numberOfSentences(), 12);
-        assertEquals(
-                paragraphList.get(0).getIthSentence(0),
-                "Ο Δίας ή Ζεύς σύμφωνα με την αρχαία ελληνική θεογονία είναι ο «Πατέρας των θεών και των ανθρώπων», που κυβερνά τους Θεούς του Ολύμπου."
-        );
+    public void testSentenceExtraction() {
+        List<String> sents = extractor.getSentencesFromParagraph(paragraphs[0]);
+        Assert.assertEquals(3, sents.size());
     }
 
     @Test
-    public void testParagraphInDionusos() {
-        extractor.setFile(this.getClass().getClassLoader().getResource(this.files[2]).getFile());
-        List<Paragraph> paragraphs = extractor.extractParagraphs(10);
-        assertEquals(paragraphs.size(), 3);
-        assertEquals(paragraphs.get(0).numberOfSentences(), 5);
-        assertEquals(paragraphs.get(0).getFirstSentence(),
-                "Ο Διόνυσος, επίσης Διώνυσος, γιος του θεού Δία, ανήκει στις ελάσσονες πλην όμως σημαντικές θεότητες του αρχαιοελληνικού πανθέου, καθώς η λατρεία του επηρέασε σημαντικά τα θρησκευτικά δρώμενα της ελλαδικής επικράτειας.");
+    public void testSentenceExtraction2() {
+        List<String> sents = extractor.getSentencesFromParagraph(paragraphs[1]);
+        Assert.assertEquals(9, sents.size());
     }
 }

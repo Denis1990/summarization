@@ -1,6 +1,7 @@
 package ptuxiaki;
 
 
+import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -92,7 +93,7 @@ public class Summarizer {
         List<String> titles = sentences.stream().filter(s -> s.equals(s.toUpperCase())).collect(Collectors.toList());
 
         // construct the global title dictionary.
-        // Each word has an enum description denoting if it is a primary of medially title
+        // Each sentence has an enum description denoting if it is a primary of medially title
         Set<Pair<String, SentenceType>> titleWords = new HashSet<>();
         int j  = 0;
         while (j < titles.size()) {
@@ -114,6 +115,7 @@ public class Summarizer {
             for (String s : sentences) {
                 terms.addAll(Arrays.asList(stemSentence(s).split("\\s+")));
             }
+            // set initial occurrences to 1
             terms.forEach(s -> termsOccurrences.put(s, 1));
             for (String t : terms) {
                 for (String s : sentences) {
@@ -130,16 +132,13 @@ public class Summarizer {
         double tt[] = new double[size];
         double sentWeight[] = new double[size];
         double sl[] = new double[size];
+
         int titleTermsCount = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.TITLE)).count();
         int mTitleTermsCount = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.SUBTITLE)).count();
         // in order to avoid calculating log(0)
         if (mTitleTermsCount == 0) {
             mTitleTermsCount = 1;
         }
-        System.out.println(String.format("========%s========", fileName));
-        paragraphs.forEach(System.out::println);
-        System.out.println("     Number of sentences from text extraction: " + size);
-        System.out.println("Number of sentences from paragraph extraction: " + paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum());
 
         // the list that holds the weight of each sentence.
         // The double value is the the weight while the int value
@@ -147,10 +146,11 @@ public class Summarizer {
         List<Pair<Double, Integer>> weights = new ArrayList<>();
         LOG.info(String.format("========%s========", fileName));
         for (int i = 0; i < size; i++) {
-            // use log functions to determine importance
-            // see paper B47
+            /** Calculate Title Term weight */
+            // use log functions to determine importance see paper B47
             tt[i] = titleKeywords(sentences.get(i), titleWords, titleTermsCount, mTitleTermsCount);
 
+            /**Calculate sentence weight based on IDF or ISF */
             if (sw.equals(IDF)) {
                 // tfIdf sentence weight
                 sentWeight[i] = indexer.computeSentenceWeight(stemSentence(sentences.get(i)), fileName);
@@ -165,48 +165,56 @@ public class Summarizer {
                 }
                 LOG.info(String.format("sentence: %s tfIsf: %f tt: %f", stemSentence(sentences.get(i)), sentWeight[i], tt[i]));
             }
-        }
 
-        // calculate the weight from sentence location
-        if (pw.equals(BAX)) {
-            // baxendales algorithm
-            for (Paragraph p : paragraphs) {
-                // get the first sentence
-                Triple<String, Integer, Integer> s = p.getSentenceTriplet(0);
-                int idx = s.getRight();
-                if (idx < sentWeight.length) {
-                    sentWeight[idx] += sentWeight[idx] * 0.85;
+            /** Calculate sentence weight based on paragraphs */
+            // calculate the weight from sentence location
+            if (pw.equals(BAX)) {
+                // baxendales algorithm
+                for (Paragraph p : paragraphs) {
+                    // get the first sentence
+                    Triple<String, Integer, Integer> s = p.getSentenceTriplet(0);
+                    int idx = s.getRight();
+                    if (idx < sentWeight.length) {
+                        sentWeight[idx] += sentWeight[idx] * 0.85;
+                    }
                 }
-            }
-        } else if (pw.equals(NAR)) {
-            // news article algorithm
+            } else if (pw.equals(NAR)) {
+                // news article algorithm
 
-            // sometimes the paragraphs extraction code
-            // finds more sentences than the sentence list
-            // so guard against this case by setting sp
-            // to sentence size if it exceeds that limit
-            int totalNumOfSentences = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
-            totalNumOfSentences = min(totalNumOfSentences, sentences.size());
-            int sp = paragraphs.size();
-            j = 0;
-            for (Paragraph par : paragraphs) {
-                final int p = par.getPositionInDocument();
-                final int sip = par.numberOfSentences();
-                for (int i = 0; i < sip && i < size; i++) {
-                    final int spip = i;
-                    if (j < totalNumOfSentences) {
-                        sl[j++] = (double) ((sp - p + 1) / sp) * ((sip - spip + 1) / sip);
+                // sometimes the paragraphs extraction code
+                // finds more sentences than the sentence list
+                // so guard against this case by setting sp
+                // to sentence size if it exceeds that limit
+                int totalNumOfSentences = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
+                totalNumOfSentences = min(totalNumOfSentences, sentences.size());
+                int sp = paragraphs.size();
+                j = 0;
+                for (Paragraph par : paragraphs) {
+                    final int p = par.getPositionInDocument();
+                    final int sip = par.numberOfSentences();
+                    for (int k = 0;  k < sip && k < size; k++) {
+                        final int spip = k + 1; // we don't want 0 based indexing for sentence location in paragraph
+                        if (j < totalNumOfSentences) {
+                            sl[j++] = ((double) (sp - p + 1) / sp) * ((double) (sip - spip + 1) / sip);
+                        }
                     }
                 }
             }
         }
 
-        // calculate the total weight of the sentence
+        long sentencesFromPar = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
+
+        if (sentencesFromPar ==  size) {
+            System.out.println("Document " + fileName + " does has equal sentence size and sentences from paragraph");
+        }
+
+        /** Calculate combined weights value */
         // a * tt + b * st + c * sl
         for (int i = 0; i < size; i++) {
             weights.add(Pair.of((wtt * tt[i]) + (wst * sentWeight[i]), i));
         }
 
+        /** Calcuate the number of sentences we will keep based on compress ratio */
         int summarySents = (int)(size - (round(size * compress)));
         // If the document has too few sentences by default
         // write the 3 most important
@@ -214,9 +222,11 @@ public class Summarizer {
             summarySents = 3;
         }
 
-        weights.sort(Comparator.reverseOrder());
-        List<Integer> selSentIdx = weights.stream().map(Pair::getValue).collect(Collectors.toList()).subList(0, summarySents);
-        selSentIdx.sort(Comparator.naturalOrder());
+        Comparator<Pair<Double, Integer>> multipleComparator = Comparator.comparing(Pair::getKey);
+        multipleComparator = multipleComparator.thenComparing(Pair::getValue).reversed();
+        weights.sort(multipleComparator);
+        //List<Integer> selSentIdx = weights.stream().map(Pair::getValue).collect(Collectors.toList()).subList(0, summarySents);
+        //selSentIdx.sort(Comparator.naturalOrder());
         String summaryFileName = fileName.concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (int i = 0; i < summarySents; i++) {

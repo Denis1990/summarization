@@ -222,11 +222,10 @@ public class Summarizer {
             summarySents = 3;
         }
 
-        Comparator<Pair<Double, Integer>> multipleComparator = Comparator.comparing(Pair::getKey);
-        multipleComparator = multipleComparator.thenComparing(Pair::getValue).reversed();
-        weights.sort(multipleComparator);
-        //List<Integer> selSentIdx = weights.stream().map(Pair::getValue).collect(Collectors.toList()).subList(0, summarySents);
-        //selSentIdx.sort(Comparator.naturalOrder());
+        weights.sort(Comparator.reverseOrder());
+        // keep the indices of the most relevant sentences and then sort them
+        List<Integer> selSentIdx = weights.stream().map(Pair::getValue).collect(Collectors.toList()).subList(0, summarySents);
+        selSentIdx.sort(Comparator.naturalOrder());
         String summaryFileName = fileName.concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (int i = 0; i < summarySents; i++) {

@@ -126,7 +126,6 @@ public class Summarizer {
             }
         }
 
-        List<Paragraph> paragraphs = extractor.extractParagraphs(sentences.size());
 
         int size = sentences.size();
         double tt[] = new double[size];
@@ -139,6 +138,12 @@ public class Summarizer {
         if (mTitleTermsCount == 0) {
             mTitleTermsCount = 1;
         }
+
+        List<Paragraph> paragraphs = extractor.extractParagraphs(size);
+
+        long sentencesFromPar = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
+
+        assert sentencesFromPar == size : String.format("%s does not have identical number of sentences", fileName);
 
         // the list that holds the weight of each sentence.
         // The double value is the the weight while the int value
@@ -200,12 +205,6 @@ public class Summarizer {
                     }
                 }
             }
-        }
-
-        long sentencesFromPar = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
-
-        if (sentencesFromPar ==  size) {
-            System.out.println("Document " + fileName + " does has equal sentence size and sentences from paragraph");
         }
 
         /** Calculate combined weights value */

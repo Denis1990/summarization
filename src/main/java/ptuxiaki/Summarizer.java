@@ -1,7 +1,6 @@
 package ptuxiaki;
 
 
-import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -22,7 +21,8 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.lang.Math.*;
+import static java.lang.Math.log10;
+import static java.lang.Math.round;
 import static ptuxiaki.utils.MathUtils.log2p;
 import static ptuxiaki.utils.MathUtils.log3;
 import static ptuxiaki.utils.PropertyKey.*;
@@ -126,7 +126,6 @@ public class Summarizer {
             }
         }
 
-
         int size = sentences.size();
         double tt[] = new double[size];
         double sentWeight[] = new double[size];
@@ -172,26 +171,17 @@ public class Summarizer {
             }
 
             /** Calculate sentence weight based on paragraphs */
-            // calculate the weight from sentence location
             if (pw.equals(BAX)) {
                 // baxendales algorithm
                 for (Paragraph p : paragraphs) {
                     // get the first sentence
                     Triple<String, Integer, Integer> s = p.getSentenceTriplet(0);
                     int idx = s.getRight();
-                    if (idx < sentWeight.length) {
-                        sentWeight[idx] += sentWeight[idx] * 0.85;
-                    }
+                    sentWeight[idx] += sentWeight[idx] * 0.85;
                 }
             } else if (pw.equals(NAR)) {
                 // news article algorithm
-
-                // sometimes the paragraphs extraction code
-                // finds more sentences than the sentence list
-                // so guard against this case by setting sp
-                // to sentence size if it exceeds that limit
                 int totalNumOfSentences = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
-                totalNumOfSentences = min(totalNumOfSentences, sentences.size());
                 int sp = paragraphs.size();
                 j = 0;
                 for (Paragraph par : paragraphs) {
@@ -205,11 +195,13 @@ public class Summarizer {
                     }
                 }
             }
+
         }
 
         /** Calculate combined weights value */
         // a * tt + b * st + c * sl
         for (int i = 0; i < size; i++) {
+            //TODO: Add sl into the equation
             weights.add(Pair.of((wtt * tt[i]) + (wst * sentWeight[i]), i));
         }
 

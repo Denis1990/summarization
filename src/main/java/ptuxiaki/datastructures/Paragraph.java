@@ -20,12 +20,17 @@ public class Paragraph {
      */
     private List<Triple<String, Integer, Integer>> sentences = new ArrayList<>();
 
-    public Paragraph(int pos) {
-        this.pos = pos;
-    }
-
     public boolean addSentence(Triple<String, Integer, Integer> s) {
         return sentences.add(s);
+    }
+
+    /**
+     * Assign an int value that represents the position of the paragraph in the document.
+     * i.e first paragraph, third paragraph etc
+     * @param parPosition
+     */
+    public void setPosition(final int parPosition) {
+        this.pos = parPosition;
     }
 
     public int numberOfSentences() {

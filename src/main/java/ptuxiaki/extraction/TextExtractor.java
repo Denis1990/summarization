@@ -276,7 +276,7 @@ public class TextExtractor {
         for (String p : paragraphsBlocks) {
             if (p.trim().isEmpty()) continue;
             int sentPos = 1; // the position of the sentence inside the paragraph
-            Paragraph par = new Paragraph(parPos++);
+            Paragraph par = new Paragraph();
             for (String s : getSentencesFromText(p.trim())) {
                 if (s.split("\\s+").length > minWord) {
                     par.addSentence(Triple.of(s.trim(), sentPos, sentGlPos));
@@ -285,6 +285,7 @@ public class TextExtractor {
                 }
             }
             if (!par.isEmpty()) {
+                par.setPosition(parPos++);
                 paragraphs.add(par);
             }
         }

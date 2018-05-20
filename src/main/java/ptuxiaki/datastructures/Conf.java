@@ -107,6 +107,11 @@ public class Conf {
         return props.getProperty(PropertyKey.PW).toLowerCase();
     }
 
+
+    public static String stemmerClass() {
+        return props.getProperty(PropertyKey.STEMMER).toLowerCase();
+    }
+
     public static String getOrDefault(final String key, String defaultValue) {
         String prop = props.getProperty(key);
         return prop == null ? defaultValue : prop;

@@ -2,12 +2,14 @@ package ptuxiaki.utils;
 
 import org.apache.commons.lang3.text.StrBuilder;
 import org.apache.lucene.analysis.el.GreekAnalyzer;
+import org.apache.lucene.analysis.el.GreekStemmer;
 import org.apache.lucene.analysis.util.CharArraySet;
+import ptuxiaki.datastructures.Conf;
 import stemmer.NNKStemmerAdapter;
 
 public class SentenceUtils {
 
-//    private static GreekStemmer greekStemmer = new GreekStemmer();
+    private static GreekStemmer greekStemmer = new GreekStemmer();
 
     private static CharArraySet STOP_WORDS = GreekAnalyzer.getDefaultStopSet();
 
@@ -23,10 +25,23 @@ public class SentenceUtils {
     }
 
     public static String stemWord(String word) {
+        if (Conf.stemmerClass().equals(PropertyKey.NNKSTEMER)) {
+            return stemWordNNK(word);
+        } else {
+            return stemWordLucene(word);
+        }
+    }
+
+    private static String stemWordNNK(String word) {
         final int l = NNKStemmerAdapter.stemWord(word.toCharArray(), word.length());
-//        final int l = greekStemmer.stem(word.toCharArray(), word.length());
         return word.substring(0, l);
     }
+
+    private static String stemWordLucene(String word) {
+        final int l = greekStemmer.stem(word.toCharArray(), word.length());
+        return word.substring(0, l);
+    }
+
 
     public static String stemSentence(final String sentence) {
         String [] words = removeWhiteSpaces(replaceSigma(removeTonation(removeNumbers((removeSpecialChars(sentence.toLowerCase())))))).split("\\s+");

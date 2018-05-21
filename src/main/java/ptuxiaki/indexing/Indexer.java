@@ -1,7 +1,9 @@
 package ptuxiaki.indexing;
 
+import com.sun.java.swing.plaf.windows.TMSchema;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.el.GreekAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -15,7 +17,9 @@ import org.apache.tika.metadata.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptuxiaki.Summarizer;
+import ptuxiaki.datastructures.Conf;
 import ptuxiaki.utils.LuceneConstant;
+import ptuxiaki.utils.PropertyKey;
 import stemmer.MyGreekAnalyzer;
 
 import java.io.*;
@@ -166,16 +170,16 @@ public class Indexer {
     }
 
     public Indexer() throws IOException {
-        this(DEFAULT_INDEX_DIR, new MyGreekAnalyzer());
+        this(DEFAULT_INDEX_DIR);
     }
 
-    public Indexer(String directory) throws IOException {
-        this(directory, new MyGreekAnalyzer());
-    }
-
-    public Indexer(final String directory, final Analyzer analyzer) throws IOException {
+    public Indexer(final String directory) throws IOException {
         this.indexDirectory = directory;
-        setUp(analyzer);
+        if (Conf.stemmerClass().equals(PropertyKey.NNKSTEMER)) {
+            setUp(new MyGreekAnalyzer());
+        } else {
+            setUp(new GreekAnalyzer());
+        }
         if (indexExists()) {
             restoreFromFile();
             docNum = index.numDocs();

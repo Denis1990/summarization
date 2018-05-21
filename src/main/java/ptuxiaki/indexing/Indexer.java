@@ -1,7 +1,9 @@
 package ptuxiaki.indexing;
 
+import com.sun.java.swing.plaf.windows.TMSchema;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.el.GreekAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -15,7 +17,9 @@ import org.apache.tika.metadata.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptuxiaki.Summarizer;
+import ptuxiaki.datastructures.Conf;
 import ptuxiaki.utils.LuceneConstant;
+import ptuxiaki.utils.PropertyKey;
 import stemmer.MyGreekAnalyzer;
 
 import java.io.*;
@@ -105,15 +109,28 @@ public class Indexer {
         totalTermFreqFileExists = true;
     }
 
+    /**
+     * Due to how nnkstemmer works it also does some word filtering.
+     * It works as an filter as well.
+     * This doesn't get along with Lucene which has the two concepts separate.
+     * First is the filtering through the use of stopword.txt files
+     * and then the stemming of the remaining words which is done through
+     * language specific stemmers.
+     * As a result printStatistics reports a total term frequency lower than
+     * what Lucene is using internally.
+     *
+     */
     private void computeSumTermFreqByDoc() {
         this.totalTermFreqDoc = new long[docNum];
         try {
             openReader();
+            BytesRef txt;
             for (int i = 0; i < docNum; i++) {
                 Terms termVector = reader.getTermVector(i, LuceneConstant.CONTENTS);
                 TermsEnum itr = termVector.iterator();
                 PostingsEnum postings = null;
-                while (itr.next() != null) {
+                while ((txt = itr.next()) != null) {
+                    if (txt.length == 0) continue;
                     postings = itr.postings(postings, PostingsEnum.FREQS);
                     postings.nextDoc();
                     totalTermFreqDoc[i] += postings.freq();
@@ -153,16 +170,16 @@ public class Indexer {
     }
 
     public Indexer() throws IOException {
-        this(DEFAULT_INDEX_DIR, new MyGreekAnalyzer());
+        this(DEFAULT_INDEX_DIR);
     }
 
-    public Indexer(String directory) throws IOException {
-        this(directory, new MyGreekAnalyzer());
-    }
-
-    public Indexer(final String directory, final Analyzer analyzer) throws IOException {
+    public Indexer(final String directory) throws IOException {
         this.indexDirectory = directory;
-        setUp(analyzer);
+        if (Conf.stemmerClass().equals(PropertyKey.NNKSTEMER)) {
+            setUp(new MyGreekAnalyzer());
+        } else {
+            setUp(new GreekAnalyzer());
+        }
         if (indexExists()) {
             restoreFromFile();
             docNum = index.numDocs();
@@ -309,7 +326,7 @@ public class Indexer {
         return tfIdf;
     }
 
-    public double computeSentenceWeight(final String sentence, String file) throws IOException {
+    public double computeSentenceWeight(final String sentence, String file)  {
         double tfIdf = 0;
         for (String w : sentence.split("\\s+")) {
             final double tfVal = tf(w, file);
@@ -387,7 +404,8 @@ public class Indexer {
                 restoreFromFile();
                 System.out.println(fileName);
                 System.out.println(String.format("\t%-16s %-12s %-5s", "Stemmed", "DocFreq", "DocTf"));
-                while ((text = tenums.next()) != null && text.length > 0) {
+                while ((text = tenums.next()) != null) {
+                    if (text.length <= 0) continue;
                     long docFreq = ctx.reader().docFreq(new Term(LuceneConstant.CONTENTS, text));
                     long tf = tenums.totalTermFreq();
                     System.out.println(String.format("\t%-17s%-13d%-23d", text.utf8ToString(), docFreq, tf));

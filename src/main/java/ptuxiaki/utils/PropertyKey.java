@@ -12,4 +12,7 @@ public class PropertyKey {
     public static final String PW = "pw";
     public static final String BAX = "bax";
     public static final String NAR = "nar";
+    public static final String STEMMER = "stemmer";
+    public static final String NNKSTEMER = "nnk";
+    public static final String LUCESTEMMER = "lucene";
 }

@@ -85,7 +85,7 @@ public class TextExtractor {
 
     /**
      * This methods extracts the sentences from a paragraph.
-     * Similarly to {@#extractSentences} this method uses {@link BreakIterator#getSentenceInstance() sentenceInstance}
+     * Similarly to {@linkplain TextExtractor#extractSentences} this method uses {@link BreakIterator#getSentenceInstance() sentenceInstance}
      * to scan through the text.
      * @implNote Scan each portion of text returned from the iterator object and look for small words like υπ. Δρ. etc
      * @param text the paragraphs text.
@@ -110,7 +110,7 @@ public class TextExtractor {
                 ;
 
             // check if it is a small word like υπ. Δρ. κ. etc
-            if (idx - wIdx <= 4) {
+            if (idx - wIdx < 4) {
                 end = iterator.next();
                 steps = 4;
                 continue;
@@ -131,7 +131,7 @@ public class TextExtractor {
      * @implNote <p>We use a {@link BreakIterator#getSentenceInstance() sentenceInstance} to scan through
      *           the content of the document.</p>
      *
-     * @return a list of strings each representing a sentence.
+     * @return a list of strings each representing a sentence, or title
      */
     public List<String> extractSentences() {
         final String content;
@@ -185,7 +185,8 @@ public class TextExtractor {
             }
 
             // check if it is a small word like υπ. Δρ. κ. etc
-            if (idx - wIdx <= 3) {
+            // only if you have walked less than steps backwards
+            if (steps > 0 && idx - wIdx <= 3) {
                 current = iterator.next();
                 steps = 4;
                 continue;
@@ -196,7 +197,10 @@ public class TextExtractor {
                 steps = 4;
                 continue;
             }
-            String str = content.substring(start, current).replaceAll("['\"]", "").trim();
+            // this characters will be removed from the string in order not to interfere with
+            // the checks we perform below, when deciding if the first character after a
+            // a newline is uppercase or not
+            String str = content.substring(start, current).replaceAll("['\"-]", "").trim();
             int strLen = str.length();
             int cur = 0;
             ArrayList<Integer> positions = new ArrayList<>();
@@ -215,6 +219,7 @@ public class TextExtractor {
                 // check if the character after newLine is capital
                 // and add it as a separate sentence or secondary title
                 // if it has less than SECONDARY_TITLE_MIN_WORDS
+                while (Character.isWhitespace(str.charAt(p)) || Character.isSpaceChar(str.charAt(p))) p++;
                 if (Character.isUpperCase(str.charAt(p))) {
                     if (str.substring(cur, p).split("\\s+").length < SECONDARY_TITLE_MIN_WORDS) {
                         sentences.add(str.substring(cur, p).trim().toUpperCase());
@@ -239,7 +244,7 @@ public class TextExtractor {
     public List<Paragraph> extractParagraphs(int sentSize) {
         if (filePath.endsWith(".html")) return Collections.emptyList();
         Pattern parSeparator;
-        if (filePath.endsWith(".txt") || filePath.endsWith(".odt") || filePath.endsWith(".docx")) {
+        if (filePath.endsWith(".txt") || filePath.endsWith(".odt") || filePath.endsWith(".docx") || filePath.endsWith(".doc")) {
             parSeparator = Pattern.compile("\\n");
         } else {
             parSeparator = Pattern.compile("\\n\\n");
@@ -254,7 +259,7 @@ public class TextExtractor {
         }
 
         String[] paragraphsBlocks = parSeparator.split(content);
-        int paragraphcount = (int) Arrays.stream(paragraphsBlocks).filter(s -> !s.isEmpty() && s.length() > 1).count();
+        int paragraphcount = (int) Arrays.stream(paragraphsBlocks).filter(s -> !s.isEmpty() && s.length() > 10).count();
         List<Paragraph> paragraphs = new ArrayList<>(paragraphsBlocks.length);
 
         // 10% of the sentences of the document
@@ -272,7 +277,7 @@ public class TextExtractor {
         for (String p : paragraphsBlocks) {
             if (p.trim().isEmpty()) continue;
             int sentPos = 1; // the position of the sentence inside the paragraph
-            Paragraph par = new Paragraph(parPos++);
+            Paragraph par = new Paragraph();
             for (String s : getSentencesFromText(p.trim())) {
                 if (s.split("\\s+").length > minWord) {
                     par.addSentence(Triple.of(s.trim(), sentPos, sentGlPos));
@@ -281,6 +286,7 @@ public class TextExtractor {
                 }
             }
             if (!par.isEmpty()) {
+                par.setPosition(parPos++);
                 paragraphs.add(par);
             }
         }

@@ -1,6 +1,5 @@
 package ptuxiaki.datastructures;
 
-import org.apache.commons.lang3.text.StrBuilder;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.ArrayList;
@@ -21,12 +20,17 @@ public class Paragraph {
      */
     private List<Triple<String, Integer, Integer>> sentences = new ArrayList<>();
 
-    public Paragraph(int pos) {
-        this.pos = pos;
-    }
-
     public boolean addSentence(Triple<String, Integer, Integer> s) {
         return sentences.add(s);
+    }
+
+    /**
+     * Assign an int value that represents the position of the paragraph in the document.
+     * i.e first paragraph, third paragraph etc
+     * @param parPosition
+     */
+    public void setPosition(final int parPosition) {
+        this.pos = parPosition;
     }
 
     public int numberOfSentences() {
@@ -49,13 +53,17 @@ public class Paragraph {
         return pos;
     }
 
+    public List<Triple<String, Integer, Integer>> getAllSentences() {
+        return sentences;
+    }
+
     public boolean isEmpty() {
         return sentences.isEmpty();
     }
 
     @Override
     public String toString() {
-        StrBuilder paragraph = new StrBuilder();
+        StringBuilder paragraph = new StringBuilder();
         paragraph.append("[");
         for (Triple<String, Integer, Integer> t : sentences) {
             paragraph.append(t.getLeft().trim());

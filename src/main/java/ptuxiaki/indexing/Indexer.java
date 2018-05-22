@@ -1,6 +1,5 @@
 package ptuxiaki.indexing;
 
-import com.sun.java.swing.plaf.windows.TMSchema;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.el.GreekAnalyzer;

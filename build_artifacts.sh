@@ -1,7 +1,11 @@
 #!/bin/bash
 
 if [[ ! -d "dist/" ]]; then
-    mkdir 'dist'
+    mkdir -v 'dist'
+else
+    echo 'Deleting contents of dist dir'
+    rm -rf 'dist'
+    mkdir -v 'dist'
 fi
 
 mvn -Pdemo -DskipTests=true clean package

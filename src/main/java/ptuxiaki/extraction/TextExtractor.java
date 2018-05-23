@@ -90,7 +90,7 @@ public class TextExtractor {
      * @implNote Scan each portion of text returned from the iterator object and look for small words like υπ. Δρ. etc
      * @param text the paragraphs text.
      */
-    private List<String> getSentencesFromText(String text) {
+    private List<String> getSentencesFromParagraph(String text) {
         iterator = BreakIterator.getSentenceInstance(Locale.forLanguageTag(LANG_TAG));
         List<String> sents = new ArrayList<>();
         iterator.setText(text);
@@ -278,7 +278,7 @@ public class TextExtractor {
             if (p.trim().isEmpty()) continue;
             int sentPos = 1; // the position of the sentence inside the paragraph
             Paragraph par = new Paragraph();
-            for (String s : getSentencesFromText(p.trim())) {
+            for (String s : getSentencesFromParagraph(p.trim())) {
                 if (s.split("\\s+").length > minWord) {
                     par.addSentence(Triple.of(s.trim(), sentPos, sentGlPos));
                     sentPos++;

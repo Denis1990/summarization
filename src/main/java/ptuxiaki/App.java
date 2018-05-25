@@ -1,12 +1,15 @@
 package ptuxiaki;
 
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ptuxiaki.datastructures.Conf;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 
 public class App {
+    private static Logger LOG = LoggerFactory.getLogger(App.class);
+    private static Conf conf;
     public static void main(String[] args) throws IOException {
         String dir = null;
         String properties = null;
@@ -26,12 +29,14 @@ public class App {
         }
 
         if (properties == null) {
-            Conf.instance();
+            conf = conf.instance();
         } else {
-            Conf.instance(properties);
+            conf = conf.instance(properties);
         }
 
         Summarizer summarizer = new Summarizer();
+
+        LOG.info(String.format("Running with properties: %s", conf));
 
         summarizer.summarizeDirectory(Paths.get(dir));
 

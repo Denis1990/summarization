@@ -169,40 +169,45 @@ public class Summarizer {
                 }
                 LOG.info(String.format("sentence: %s tfIsf: %f tt: %f", stemSentence(sentences.get(i)), sentWeight[i], tt[i]));
             }
+        }
 
-            /** Calculate sentence weight based on paragraphs */
-            if (pw.equals(BAX)) {
-                // baxendales algorithm
-                for (Paragraph p : paragraphs) {
-                    // get the first sentence
-                    Triple<String, Integer, Integer> s = p.getSentenceTriplet(0);
-                    int idx = s.getRight();
-                    sentWeight[idx] += sentWeight[idx] * 0.85;
-                }
-            } else if (pw.equals(NAR)) {
-                // news article algorithm
-                int totalNumOfSentences = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
-                int sp = paragraphs.size();
-                j = 0;
-                for (Paragraph par : paragraphs) {
-                    final int p = par.getPositionInDocument();
-                    final int sip = par.numberOfSentences();
-                    for (int k = 0;  k < sip && k < size; k++) {
-                        final int spip = k + 1; // we don't want 0 based indexing for sentence location in paragraph
-                        if (j < totalNumOfSentences) {
-                            sl[j++] = ((double) (sp - p + 1) / sp) * ((double) (sip - spip + 1) / sip);
-                        }
+        /** Calculate sentence weight based on paragraphs */
+        if (pw.equals(BAX)) {
+            // baxendales algorithm
+            for (Paragraph p : paragraphs) {
+                // get the first sentence
+                Triple<String, Integer, Integer> s = p.getSentenceTriplet(0);
+                int idx = s.getRight();
+                sentWeight[idx] += sentWeight[idx] * 0.85;
+            }
+        } else if (pw.equals(NAR)) {
+            // news article algorithm
+            int totalNumOfSentences = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
+            int sp = paragraphs.size();
+            j = 0;
+            for (Paragraph par : paragraphs) {
+                final int p = par.getPositionInDocument();
+                final int sip = par.numberOfSentences();
+                for (int k = 0;  k < sip && k < size; k++) {
+                    final int spip = k + 1; // we don't want 0 based indexing for sentence location in paragraph
+                    if (j < totalNumOfSentences) {
+                        sl[j++] = ((double) (sp - p + 1) / sp) * ((double) (sip - spip + 1) / sip);
                     }
                 }
             }
-
         }
 
         /** Calculate combined weights value */
         // a * tt + b * st + c * sl
         for (int i = 0; i < size; i++) {
             //TODO: Add sl into the equation
-            weights.add(Pair.of((wtt * tt[i]) + (wst * sentWeight[i]), i));
+            double w = 0.0;
+            if (pw.equals(NAR)) {
+                w = (wtt * tt[i]) + (wst * sentWeight[i]) + (wsl * sl[i]);
+            } else {
+                w = (wtt * tt[i]) + (wst * sentWeight[i]);
+            }
+            weights.add(Pair.of(w, i));
         }
 
         /** Calcuate the number of sentences we will keep based on compress ratio */

@@ -168,6 +168,13 @@ public class Indexer {
         }
     }
 
+    private boolean openReader() throws IOException {
+        if (reader == null || reader.getRefCount() <= 0) {
+            reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexDirectory)));
+        }
+        return reader != null;
+    }
+
     public Indexer() throws IOException {
         this(DEFAULT_INDEX_DIR);
     }
@@ -335,13 +342,6 @@ public class Indexer {
         }
         LOG.info(String.format("sentence: %s tfIdf: %f", sentence, tfIdf));
         return tfIdf;
-    }
-
-    public boolean openReader() throws IOException {
-        if (reader == null || reader.getRefCount() <= 0) {
-            reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexDirectory)));
-        }
-        return reader != null;
     }
 
     /**

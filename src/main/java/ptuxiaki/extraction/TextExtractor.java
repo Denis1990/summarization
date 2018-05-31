@@ -2,6 +2,7 @@ package ptuxiaki.extraction;
 
 
 import org.apache.commons.lang3.tuple.Triple;
+import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
@@ -11,6 +12,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import ptuxiaki.datastructures.Conf;
 import ptuxiaki.datastructures.Paragraph;
+import ptuxiaki.utils.SentenceUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -291,6 +293,41 @@ public class TextExtractor {
             }
         }
         return paragraphs;
+    }
+
+
+    public List<Paragraph> extractParagraphs() {
+        Pattern parSeparator = Pattern.compile("\\n");
+
+        String content;
+        try {
+            content = extractFileContent().toString();
+        } catch (SAXException | TikaException | IOException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+        String[] paragraphsBlocks = parSeparator.split(content);
+        int paragraphcount = (int) Arrays.stream(paragraphsBlocks).filter(s -> !s.isEmpty()).count();
+        List<Paragraph> paragraphs = new ArrayList<>(paragraphcount);
+        for (String par : paragraphsBlocks) {
+            if (par.isEmpty()) continue;
+            List<String> sents = getSentencesFromParagraph(par);
+            // check for title subtitles etc
+            if (sents.size() == 1) {
+                final String sent = SentenceUtils.removeSpecialChars(sents.get(0));
+                // pass it through different criteria
+//                int isTitle = true ?  :
+                boolean isSubtitle = Character.isUpperCase(sent.charAt(0));
+                isSubtitle = isSubtitle && sent.charAt(sent.length()-1) != '.';
+
+                if (Character.isUpperCase(sent.charAt(0)) && sent.charAt(sent.length()-1) != '.'
+                   && sent.split("\\s+").length < 5) {
+
+                }
+            }
+            System.out.println(sents.size());
+        }
+        return null;
     }
 
     /**

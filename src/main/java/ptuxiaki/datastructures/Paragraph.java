@@ -1,7 +1,5 @@
 package ptuxiaki.datastructures;
 
-import org.apache.commons.lang3.tuple.Triple;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +16,9 @@ public class Paragraph {
      * The middle element is the position of the sentence inside the paragraph.
      * The right element is the position of the sentence inside the document.
      */
-    private List<Triple<String, Integer, Integer>> sentences = new ArrayList<>();
+    private List<Sentence> sentences = new ArrayList<>();
 
-    public boolean addSentence(Triple<String, Integer, Integer> s) {
+    public boolean addSentence(Sentence s) {
         return sentences.add(s);
     }
 
@@ -37,15 +35,15 @@ public class Paragraph {
         return sentences.size();
     }
 
-    public String getFirstSentence() {
+    public Sentence getFirstSentence() {
         return getIthSentence(0);
     }
 
-    public String getIthSentence(int i) {
-        return sentences.get(i).getLeft();
+    public Sentence getIthSentence(int i) {
+        return sentences.get(i);
     }
 
-    public Triple<String, Integer, Integer> getSentenceTriplet(int i) {
+    public Sentence getSentenceTriplet(int i) {
         return sentences.get(i);
     }
 
@@ -53,7 +51,7 @@ public class Paragraph {
         return pos;
     }
 
-    public List<Triple<String, Integer, Integer>> getAllSentences() {
+    public List<Sentence> getAllSentences() {
         return sentences;
     }
 
@@ -65,8 +63,8 @@ public class Paragraph {
     public String toString() {
         StringBuilder paragraph = new StringBuilder();
         paragraph.append("[");
-        for (Triple<String, Integer, Integer> t : sentences) {
-            paragraph.append(t.getLeft().trim());
+        for (Sentence s : sentences) {
+            paragraph.append(s.toString());
             paragraph.append(",");
         }
         paragraph.append("]");

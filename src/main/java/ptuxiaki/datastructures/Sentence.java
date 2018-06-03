@@ -49,7 +49,7 @@ public class Sentence {
      * @param position
      */
     public Sentence(String text, int position) {
-        this(text, SentenceType.SENTENCE, position, parPosition);
+        this(text, SentenceType.SENTENCE, position, 0);
     }
 
     /**
@@ -107,6 +107,10 @@ public class Sentence {
 
     public int getPosition() {
         return position;
+    }
+
+    public int getParPosition() {
+        return parPosition;
     }
 
     @Override

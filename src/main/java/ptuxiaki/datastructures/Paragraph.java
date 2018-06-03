@@ -65,7 +65,7 @@ public class Paragraph {
         paragraph.append("[");
         for (Sentence s : sentences) {
             paragraph.append(s.toString());
-            paragraph.append(",");
+            paragraph.append("--");
         }
         paragraph.append("]");
         return paragraph.toString();

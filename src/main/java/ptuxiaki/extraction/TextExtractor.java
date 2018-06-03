@@ -278,7 +278,7 @@ public class TextExtractor {
                     titleNotFound = false;
                 } else if (Character.isUpperCase(sent.charAt(0))  // subtitle
                         && sent.charAt(sent.length() - 1) != '.'
-                        && sent.split("\\s+").length < 9) {
+                        && sent.split("\\s+").length <= 9) {
                     p.addSentence(new Sentence(sent, SentenceType.SUBTITLE, sentPos, sentPosInPar));
                 } else { // single sentence paragraph
                     p.addSentence(new Sentence(sent, SentenceType.SENTENCE, sentPos, sentPosInPar));
@@ -296,7 +296,7 @@ public class TextExtractor {
             paragraphs.add(p);
             sentPosInPar = 0;
         }
-        return null;
+        return paragraphs;
     }
 
     /**

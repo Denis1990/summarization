@@ -1,8 +1,6 @@
 package ptuxiaki.extraction;
 
 
-import org.apache.commons.lang3.tuple.Triple;
-import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
@@ -10,8 +8,9 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
-import ptuxiaki.datastructures.Conf;
 import ptuxiaki.datastructures.Paragraph;
+import ptuxiaki.datastructures.Sentence;
+import ptuxiaki.datastructures.SentenceType;
 import ptuxiaki.utils.SentenceUtils;
 
 import java.io.File;
@@ -243,59 +242,6 @@ public class TextExtractor {
         return sentences.stream().filter(s -> !s.isEmpty()).collect(Collectors.toList());
     }
 
-    public List<Paragraph> extractParagraphs(int sentSize) {
-        if (filePath.endsWith(".html")) return Collections.emptyList();
-        Pattern parSeparator;
-        if (filePath.endsWith(".txt") || filePath.endsWith(".odt") || filePath.endsWith(".docx") || filePath.endsWith(".doc")) {
-            parSeparator = Pattern.compile("\\n");
-        } else {
-            parSeparator = Pattern.compile("\\n\\n");
-        }
-
-        String content;
-        try {
-            content = extractFileContent().toString();
-        } catch (SAXException | TikaException | IOException e) {
-            e.printStackTrace();
-            return Collections.emptyList();
-        }
-
-        String[] paragraphsBlocks = parSeparator.split(content);
-        int paragraphcount = (int) Arrays.stream(paragraphsBlocks).filter(s -> !s.isEmpty() && s.length() > 10).count();
-        List<Paragraph> paragraphs = new ArrayList<>(paragraphsBlocks.length);
-
-        // 10% of the sentences of the document
-        int delta = Math.round(sentSize * 0.1f);
-
-        // if number_of_sentences - number_of_paragraphs < delta then assume the document has no paragraphs
-        if ((sentSize - paragraphcount) < delta) {
-            System.out.println(filePath + " does not have paragraphs");
-            return Collections.emptyList();
-        }
-
-        int parPos = 0; // position of paragraph in document
-        int sentGlPos= 0; // sentence global position. The position of the sentence inside the document
-        int minWord = Conf.minimumWords();
-        for (String p : paragraphsBlocks) {
-            if (p.trim().isEmpty()) continue;
-            int sentPos = 1; // the position of the sentence inside the paragraph
-            Paragraph par = new Paragraph();
-            for (String s : getSentencesFromParagraph(p.trim())) {
-                if (s.split("\\s+").length > minWord) {
-                    par.addSentence(Triple.of(s.trim(), sentPos, sentGlPos));
-                    sentPos++;
-                    sentGlPos++;
-                }
-            }
-            if (!par.isEmpty()) {
-                par.setPosition(parPos++);
-                paragraphs.add(par);
-            }
-        }
-        return paragraphs;
-    }
-
-
     public List<Paragraph> extractParagraphs() {
         Pattern parSeparator = Pattern.compile("\\n");
 
@@ -309,23 +255,46 @@ public class TextExtractor {
         String[] paragraphsBlocks = parSeparator.split(content);
         int paragraphcount = (int) Arrays.stream(paragraphsBlocks).filter(s -> !s.isEmpty()).count();
         List<Paragraph> paragraphs = new ArrayList<>(paragraphcount);
+        boolean titleNotFound = true;
+        int sentPos = 0;
+        int sentPosInPar = 0;
+        int paragraphCount = 0;
+        // For each paragraph block get the sentences and make a list of paragraph objects
         for (String par : paragraphsBlocks) {
             if (par.isEmpty()) continue;
             List<String> sents = getSentencesFromParagraph(par);
+            final Paragraph p = new Paragraph();
             // check for title subtitles etc
             if (sents.size() == 1) {
                 final String sent = SentenceUtils.removeSpecialChars(sents.get(0));
-                // pass it through different criteria
-//                int isTitle = true ?  :
-                boolean isSubtitle = Character.isUpperCase(sent.charAt(0));
-                isSubtitle = isSubtitle && sent.charAt(sent.length()-1) != '.';
-
-                if (Character.isUpperCase(sent.charAt(0)) && sent.charAt(sent.length()-1) != '.'
-                   && sent.split("\\s+").length < 5) {
-
+                // check if the sentence starts with a capital case letter
+                // if does not end with a dot character and
+                // if it has less than 5 words (debatable)
+                if (Character.isUpperCase(sent.charAt(0))
+                        && sent.charAt(sent.length() - 1) != '.'
+                        && sent.split("\\s+").length < 7
+                        && titleNotFound) {
+                    p.addSentence(new Sentence(sent, SentenceType.TITLE, sentPos, sentPosInPar));
+                    titleNotFound = false;
+                } else if (Character.isUpperCase(sent.charAt(0))  // subtitle
+                        && sent.charAt(sent.length() - 1) != '.'
+                        && sent.split("\\s+").length < 9) {
+                    p.addSentence(new Sentence(sent, SentenceType.SUBTITLE, sentPos, sentPosInPar));
+                } else { // single sentence paragraph
+                    p.addSentence(new Sentence(sent, SentenceType.SENTENCE, sentPos, sentPosInPar));
+                }
+                sentPos++;
+            } else {
+                // a list of sentences. Add each of them in a paragraph object and
+                for (String sent : sents) {
+                    p.addSentence(new Sentence(sent, SentenceType.SENTENCE, sentPos, sentPosInPar));
+                    sentPos++;
+                    sentPosInPar++;
                 }
             }
-            System.out.println(sents.size());
+            p.setPosition(paragraphCount++);
+            paragraphs.add(p);
+            sentPosInPar = 0;
         }
         return null;
     }

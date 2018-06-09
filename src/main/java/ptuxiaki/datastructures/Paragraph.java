@@ -65,7 +65,6 @@ public class Paragraph {
             }
             paragraph.append(System.lineSeparator());
         }
-//        paragraph.append("]");
         return paragraph.toString();
     }
 }

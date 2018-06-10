@@ -2,6 +2,7 @@ package ptuxiaki.datastructures;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Paragraph {
 
@@ -29,6 +30,14 @@ public class Paragraph {
      */
     public void setPosition(final int parPosition) {
         this.pos = parPosition;
+    }
+
+    public List<Sentence> getTitles() {
+        return sentences.stream().filter(Sentence::isTitle).collect(Collectors.toList());
+    }
+
+    public List<Sentence> getSubTitles() {
+        return sentences.stream().filter(Sentence::isSubTitle).collect(Collectors.toList());
     }
 
     public int numberOfSentences() {

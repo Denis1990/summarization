@@ -81,6 +81,14 @@ public class Sentence {
         this.titleTerm = 0.0;
     }
 
+    public boolean isTitle() {
+        return this.type == SentenceType.TITLE;
+    }
+
+    public boolean isSubTitle() {
+        return this.type == SentenceType.SUBTITLE;
+    }
+
     public SentenceType getType() {
         return type;
     }
@@ -115,6 +123,6 @@ public class Sentence {
 
     @Override
     public String toString() {
-        return text;
+        return String.format("%s | %s | %d | %d", text, type.toString(), parPosition, position);
     }
 }

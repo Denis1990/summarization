@@ -1,10 +1,17 @@
 package ptuxiaki.datastructures;
 
+import ptuxiaki.utils.SentenceUtils;
+
 public class Sentence {
     /**
      * Sentence text
      */
     private String text;
+
+    /**
+     * The stemmed sentence
+     */
+    private String stemmedText;
 
     /**
      * What kind of sentence it is
@@ -79,6 +86,7 @@ public class Sentence {
         this.parPosition = parPosition;
         this.weight = 0.0;
         this.titleTerm = 0.0;
+        this.stemmedText = SentenceUtils.stemSentence(text);
     }
 
     public boolean isTitle() {
@@ -91,6 +99,10 @@ public class Sentence {
 
     public SentenceType getType() {
         return type;
+    }
+
+    public String [] getStemmedTerms() {
+        return this.stemmedText.split("\\s+");
     }
 
     public void setType(SentenceType type) {

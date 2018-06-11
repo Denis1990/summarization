@@ -77,6 +77,24 @@ public class Summarizer {
         return (a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw)));
     }
 
+    private double titleKeywords(Sentence sentence, Set<Pair<String, SentenceType>> titleWords, int tw, int mtw) {
+        double a = Double.valueOf(Conf.getOrDefault("a", "0.6"));
+        double b = Double.valueOf(Conf.getOrDefault("b", "0.4"));
+        int tt = 0, mtt = 0;
+        for (Pair<String, SentenceType> word : titleWords) {
+            if (sentence.getStemmedTermsAsList().contains(word.getKey())) {
+                if (word.getValue().equals(SentenceType.TITLE)) {
+                    tt++;
+                } else if (word.getValue().equals(SentenceType.SUBTITLE)) {
+                    mtt++;
+                }
+            }
+        }
+        if (tt == 0 && mtt == 0) return 0;
+        return (a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw)));
+    }
+
+
     private void summarizeFile(final String filePath, int docId) throws IOException {
         /***********************************Load properties values************************************************/
         int minWords = Conf.minimumWords();

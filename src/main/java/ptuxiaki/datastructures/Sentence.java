@@ -2,6 +2,9 @@ package ptuxiaki.datastructures;
 
 import ptuxiaki.utils.SentenceUtils;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Sentence {
     /**
      * Sentence text
@@ -103,6 +106,10 @@ public class Sentence {
 
     public String [] getStemmedTerms() {
         return this.stemmedText.split("\\s+");
+    }
+
+    public List<String> getStemmedTermsAsList() {
+        return Arrays.asList(this.stemmedText.split("\\s+"));
     }
 
     public void setType(SentenceType type) {

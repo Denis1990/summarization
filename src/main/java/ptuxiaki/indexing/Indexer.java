@@ -345,7 +345,7 @@ public class Indexer {
         return tfIdf;
     }
 
-    public double computeSentenceWeight(final Sentence sentence, String file)  {
+    public double assignSentenceWeight(final Sentence sentence, String file)  {
         double tfIdf = 0;
         for (String w : sentence.getStemmedTermsAsList()) {
             final double tfVal = tf(w, file);
@@ -353,6 +353,7 @@ public class Indexer {
             tfIdf += tfVal * idfVal;
             LOG.info(String.format("\tword: %s tf: %f idf: %f", w, tfVal, idfVal));
         }
+        sentence.setWeight(tfIdf);
         LOG.info(String.format("sentence: %s tfIdf: %f", sentence, tfIdf));
         return tfIdf;
     }

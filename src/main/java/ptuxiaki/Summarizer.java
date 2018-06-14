@@ -115,6 +115,7 @@ public class Summarizer {
         List<String> oldTitles = oldSentences.stream().filter(s -> s.equals(s.toUpperCase())).collect(Collectors.toList());
         List<Sentence> titles = new ArrayList<>();
         List<Paragraph> paragraphs = extractor.extractParagraphs();
+        // remove sentences that have less than minWords words
         for (Paragraph p : paragraphs) {
             p.removeSentencesWithLessThan(minWords);
         }
@@ -166,18 +167,10 @@ public class Summarizer {
         if (mTitleTermsCount == 0) {
             mTitleTermsCount = 1;
         }
-//
-//        List<Paragraph> paragraphs = extractor.extractParagraphs(size);
-//
-//        long sentencesFromPar = paragraphs.stream().mapToInt(Paragraph::numberOfSentences).sum();
-//
-//        assert sentencesFromPar == size : String.format("%s does not have identical number of sentences", fileName);
-//
-//        // the list that holds the weight of each sentence.
-//        // The double value is the the weight while the int value
-//        // is the index in the list of sentences
-//        List<Pair<Double, Integer>> weights = new ArrayList<>();
+
 //        LOG.info(String.format("========%s========", fileName));
+        List<Pair<Double, Integer>> weights = new ArrayList<>();
+
         for (int i = 0; i < size; i++) {
             /** Calculate Title Term weight */
             // use log functions to determine importance see paper B47
@@ -186,7 +179,7 @@ public class Summarizer {
             /**Calculate sentence weight based on IDF or ISF */
             if (sw.equals(IDF)) {
                 // tfIdf sentence weight
-                sentWeight[i] = indexer.computeSentenceWeight(sentences.get(i), fileName);
+                sentWeight[i] = indexer.assignSentenceWeight(sentences.get(i), fileName);
                 LOG.info(String.format("sentence: %s tt: %f", sentences.get(i).getStemmedTermsAsList(), tt[i]));
             } else if (sw.equals(ISF)) {
                 // ISF sentence weight
@@ -225,45 +218,43 @@ public class Summarizer {
                 }
             }
         }
-//
-//        /** Calculate combined weights value */
-//        // a * tt + b * st + c * sl
-//        for (int i = 0; i < size; i++) {
-//            //TODO: Add sl into the equation
-//            double w = 0.0;
-//            if (pw.equals(NAR)) {
-//                w = (wtt * tt[i]) + (wst * sentWeight[i]) + (wsl * sl[i]);
-//            } else {
-//                w = (wtt * tt[i]) + (wst * sentWeight[i]);
-//            }
-//            weights.add(Pair.of(w, i));
-//        }
-//
-//        /** Calcuate the number of sentences we will keep based on compress ratio */
-//        int summarySents = (int)(size - (round(size * compress)));
-//        // If the document has too few sentences by default
-//        // write the 3 most important
-//        if (summarySents < 3 && size > 3) {
-//            summarySents = 3;
-//        }
-//
-//        weights.sort(Comparator.reverseOrder());
-//        // keep the indices of the most relevant sentences and then sort them
-//        List<Integer> selSentIdx = weights.stream().map(Pair::getValue).collect(Collectors.toList()).subList(0, summarySents);
-//        selSentIdx.sort(Comparator.naturalOrder());
-//        String summaryFileName = fileName.concat("_summary");
-//        try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
-//            for (int i = 0; i < summarySents; i++) {
-//                fos.write(sentences.get(selSentIdx.get(i))
-//                        .trim()
-//                        .concat(System.lineSeparator())
-//                        .getBytes(Charset.forName("UTF-8"))
-//                );
-//            }
-//        }
-//        System.out.println("New summary saved to: " + summaryFileName);
-        assert paragraphs.stream().map(Paragraph::getAllSentences).mapToInt(Collection::size).sum() == sentences.size();
-        assert oldTitles.size() == titles.size();
+
+        /** Calculate combined weights value */
+        // a * tt + b * st + c * sl
+        for (int i = 0; i < size; i++) {
+            //TODO: Add sl into the equation
+            double w = 0.0;
+            if (pw.equals(NAR)) {
+                w = (wtt * tt[i]) + (wst * sentWeight[i]) + (wsl * sl[i]);
+            } else {
+                w = (wtt * tt[i]) + (wst * sentWeight[i]);
+            }
+            weights.add(Pair.of(w, i));
+        }
+
+        /** Calcuate the number of sentences we will keep based on compress ratio */
+        int summarySents = (int)(size - (round(size * compress)));
+        // If the document has too few sentences by default
+        // write the 3 most important
+        if (summarySents < 3 && size > 3) {
+            summarySents = 3;
+        }
+
+        weights.sort(Comparator.reverseOrder());
+        // keep the indices of the most relevant sentences and then sort them
+        List<Integer> selSentIdx = weights.stream().map(Pair::getValue).collect(Collectors.toList()).subList(0, summarySents);
+        selSentIdx.sort(Comparator.naturalOrder());
+        String summaryFileName = fileName.concat("_summary");
+        try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
+            for (Integer i : selSentIdx) {
+                fos.write(sentences.get(i).getText()
+                        .trim()
+                        .concat(System.lineSeparator())
+                        .getBytes(Charset.forName("UTF-8"))
+                );
+            }
+        }
+        System.out.println("New summary saved to: " + summaryFileName);
     }
 
     public void summarizeDirectory(final Path dir) throws IOException {

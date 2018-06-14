@@ -27,7 +27,7 @@ public class Paragraph {
      */
     public int removeSentencesWithLessThan(int n) {
         int oldSize = sentences.size();
-        sentences = sentences.stream().filter(s -> s.getWordsCount() < n).collect(Collectors.toList());
+        sentences = sentences.stream().filter(s -> s.getWordsCount() > n).collect(Collectors.toList());
         return oldSize - sentences.size();
     }
 

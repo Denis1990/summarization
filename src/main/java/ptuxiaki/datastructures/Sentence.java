@@ -110,6 +110,10 @@ public class Sentence {
         return type;
     }
 
+    public String getText() {
+        return this.text;
+    }
+
     public String [] getStemmedTerms() {
         return this.stemmedText.split("\\s+");
     }

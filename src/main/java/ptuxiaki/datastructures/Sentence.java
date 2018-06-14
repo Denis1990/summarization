@@ -45,6 +45,11 @@ public class Sentence {
     public final int parPosition;
 
     /**
+     * How many words the original sentence has.
+     */
+    private final int wordsCount;
+
+    /**
      * Construct a sentence with the given text.
      * This is considered the first sentence by default
      * @param text
@@ -90,6 +95,7 @@ public class Sentence {
         this.weight = 0.0;
         this.titleTerm = 0.0;
         this.stemmedText = SentenceUtils.stemSentence(text);
+        this.wordsCount = text.split("\\s+").length;
     }
 
     public boolean isTitle() {
@@ -110,6 +116,10 @@ public class Sentence {
 
     public List<String> getStemmedTermsAsList() {
         return Arrays.asList(this.stemmedText.split("\\s+"));
+    }
+
+    public int getWordsCount() {
+        return this.wordsCount;
     }
 
     public void setType(SentenceType type) {

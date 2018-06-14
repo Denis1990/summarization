@@ -19,6 +19,18 @@ public class Paragraph {
      */
     private List<Sentence> sentences = new ArrayList<>();
 
+    /**
+     * Remove any sentences from the paragraph that has less than n number
+     * of words in it.
+     * @param n
+     * @return
+     */
+    public int removeSentencesWithLessThan(int n) {
+        int oldSize = sentences.size();
+        sentences = sentences.stream().filter(s -> s.getWordsCount() < n).collect(Collectors.toList());
+        return oldSize - sentences.size();
+    }
+
     public boolean addSentence(Sentence s) {
         return sentences.add(s);
     }
@@ -56,6 +68,10 @@ public class Paragraph {
         return pos;
     }
 
+    /**
+     * Return the sentences that have more than minWords
+     * @return
+     */
     public List<Sentence> getAllSentences() {
         return sentences;
     }

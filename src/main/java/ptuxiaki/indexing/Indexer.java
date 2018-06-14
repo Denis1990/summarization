@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptuxiaki.Summarizer;
 import ptuxiaki.datastructures.Conf;
+import ptuxiaki.datastructures.Sentence;
 import ptuxiaki.utils.LuceneConstant;
 import ptuxiaki.utils.PropertyKey;
 import stemmer.MyGreekAnalyzer;
@@ -335,6 +336,18 @@ public class Indexer {
     public double computeSentenceWeight(final String sentence, String file)  {
         double tfIdf = 0;
         for (String w : sentence.split("\\s+")) {
+            final double tfVal = tf(w, file);
+            final double idfVal = idf(w);
+            tfIdf += tfVal * idfVal;
+            LOG.info(String.format("\tword: %s tf: %f idf: %f", w, tfVal, idfVal));
+        }
+        LOG.info(String.format("sentence: %s tfIdf: %f", sentence, tfIdf));
+        return tfIdf;
+    }
+
+    public double computeSentenceWeight(final Sentence sentence, String file)  {
+        double tfIdf = 0;
+        for (String w : sentence.getStemmedTermsAsList()) {
             final double tfVal = tf(w, file);
             final double idfVal = idf(w);
             tfIdf += tfVal * idfVal;

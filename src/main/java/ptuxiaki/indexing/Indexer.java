@@ -34,11 +34,11 @@ import static java.lang.Math.log10;
 public class Indexer {
     private static final Logger LOG = LoggerFactory.getLogger(Summarizer.class);
 
-    public static final String DEFAULT_INDEX_DIR = System.getProperty("user.home") + File.separator + "index";
-    public static final String TERM_FREQ_DOC_TFD = "termFreqDoc.tfd";
+    private static final String DEFAULT_INDEX_DIR = System.getProperty("user.home") + File.separator + "index";
+    private static final String TERM_FREQ_DOC_TFD = "termFreqDoc.tfd";
 
     // configuration for lucene index
-    public final FieldType INDEX_STORED_ANALYZED = new FieldType();
+    private final FieldType INDEX_STORED_ANALYZED = new FieldType();
 
     private String indexDirectory;
     private boolean indexExists;
@@ -323,26 +323,6 @@ public class Indexer {
             e.printStackTrace();
         }
         return log10((double) docNum / (docFreq + 1));
-    }
-
-    public double computeSentenceWeight(final String sentence, int docNum) throws IOException {
-        double tfIdf = 0;
-        for (String w : sentence.split("\\s+")) {
-            tfIdf += tf(w, docNum) * idf(w);
-        }
-        return tfIdf;
-    }
-
-    public double computeSentenceWeight(final String sentence, String file)  {
-        double tfIdf = 0;
-        for (String w : sentence.split("\\s+")) {
-            final double tfVal = tf(w, file);
-            final double idfVal = idf(w);
-            tfIdf += tfVal * idfVal;
-            LOG.info(String.format("\tword: %s tf: %f idf: %f", w, tfVal, idfVal));
-        }
-        LOG.info(String.format("sentence: %s tfIdf: %f", sentence, tfIdf));
-        return tfIdf;
     }
 
     public double assignSentenceWeight(final Sentence sentence, String file)  {

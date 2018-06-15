@@ -27,6 +27,7 @@ public class TextExtractor {
     private String filePath;
 
     private static final int SECONDARY_TITLE_MIN_WORDS = 9;
+
     private ContentHandler extractFileContent() throws SAXException, TikaException, IOException  {
         AutoDetectParser parser = new AutoDetectParser();
         Metadata md = new Metadata();
@@ -38,57 +39,9 @@ public class TextExtractor {
     }
 
     /**
-     * <p>This method is used to find the main title of a document.</p>
-     * <p>It should only be called once for each document.</p>
-     *
-     * @implSpec <p>As the majority of document begins with a title that doesn't
-     *           end with a dot character (.), we need to rely on other patterns
-     *           to discover the title of a document.</p>
-     *           One such pattern is \n followed by a capital case letter
-     *           immediately after.
-     *
-     * @implNote Scan the text using
-     *           {@link BreakIterator#getLineInstance(Locale) lineInstanceIterator}
-     *           and compare the current and the previous position returned by
-     *           the iterator. If the character in the current position is
-     *           capital case the character in the previous position is \n
-     *           return that position.
-     *
-     * @param text The string to search in.
-     *             <p>Usually the first sentence of a document
-     *             as returned from {@link BreakIterator#getSentenceInstance() sentenceInstanceIterator} iterator</p>
-     * @return the position found by the iterator
-     */
-    private int findTitlePos(String text) {
-        final int oldLength = text.length();
-        // replace " symbols as they get in the way of identifying capital case characters
-        text = text.replaceAll("['\"]", "");
-        final int diff = oldLength - text.length();
-        BreakIterator iterator = BreakIterator.getLineInstance(Locale.forLanguageTag(LANG_TAG));
-        iterator.setText(text);
-        int c;
-        // iterator returns values from [0, text.length()] so we need to
-        // guard for NullPointerException in the inner if clause
-        while ((c = iterator.next()) != BreakIterator.DONE && c < text.length()) {
-                /*npe here is c == text.length */
-                /*                          v  */
-            if (Character.isUpperCase(text.charAt(c)) && text.charAt(c-1) == '\n') {
-                break;
-            }
-        }
-        // account for the lost letter when performing removeSpecialChars
-        if (c == -1) {
-            return text.length() + diff/2;
-        } else {
-            return (c-1) + diff/2;
-        }
-    }
-
-    /**
      * This methods extracts the sentences from a paragraph.
-     * Similarly to {@linkplain TextExtractor#extractSentences} this method uses {@link BreakIterator#getSentenceInstance() sentenceInstance}
+     * This method uses {@link BreakIterator#getSentenceInstance() sentenceInstance}
      * to scan through the text.
-     * @implNote Scan each portion of text returned from the iterator object and look for small words like υπ. Δρ. etc
      * @param text the paragraphs text.
      */
     private List<String> getSentencesFromParagraph(String text) {
@@ -124,122 +77,6 @@ public class TextExtractor {
 
         sents.add(text.substring(start, end));
         return sents.stream().filter(s->!s.isEmpty()).collect(Collectors.toList());
-    }
-
-    /**
-     * <p>Extract the sentences from a document.</p>
-     * The document should be passed with the {@link #setFile(String)} method.
-     * @implNote <p>We use a {@link BreakIterator#getSentenceInstance() sentenceInstance} to scan through
-     *           the content of the document.</p>
-     *
-     * @return a list of strings each representing a sentence, or title
-     */
-    public List<String> extractSentences() {
-        final String content;
-        try {
-            content = extractFileContent().toString().trim();
-        } catch (SAXException | TikaException | IOException e) {
-            e.printStackTrace();
-            return Collections.emptyList();
-        }
-        iterator = BreakIterator.getSentenceInstance(Locale.forLanguageTag(LANG_TAG));
-        iterator.setText(content);
-        //start signifies the index of a piece of text that may be a sentence
-        int start = 0;
-        // current index in the text body
-        int current = iterator.next();
-        List<String> sentences = new ArrayList<>();
-        boolean titleFound = false;
-        int len = content.length();
-        int steps = 4; // steps to backtrack or lookahead
-        while (current != BreakIterator.DONE && current < len) {
-            // in most cases the first sentence of a document contains it's title.
-            // BreakIterator can't recognize the title automatically since it does
-            // not end with any of it's stop characters. In order to get the title
-            // we need to rescan that first sentence using lineBreakIterator.
-            // This will create an additional boundary we need to account for
-            // as we do in the if statement.
-            // If the position is different (smaller) than the current position
-            // returned from iterator, it means that the first sentence contains
-            // the title as well as the rest of the text which constitutes a sentence
-            // by itself and needs to be added in the list.
-            if (!titleFound) {
-                // clean the text portion of characters tha may mess up the title recognition
-                final int titlePos = findTitlePos(content.substring(start, current));
-                // titles are uppercase
-                sentences.add(content.substring(start, titlePos).toUpperCase().trim());
-                start = titlePos+1;
-                titleFound = true;
-            }
-
-            // go back at most 4 steps
-            // find the position of dot char
-            int idx = current;
-            while (steps-- > 0 && content.charAt(idx) != '.') {
-                idx--;
-            }
-
-            // find the position of the first whitespace char before idx
-            int wIdx = idx - 1;
-            while (!Character.isWhitespace(content.charAt(wIdx))) {
-                wIdx--;
-            }
-
-            // check if it is a small word like υπ. Δρ. κ. etc
-            // only if you have walked less than steps backwards
-            if (steps > 0 && idx - wIdx <= 3) {
-                current = iterator.next();
-                steps = 4;
-                continue;
-            }
-            if (start > current) {
-                start = current;
-                current = iterator.next();
-                steps = 4;
-                continue;
-            }
-            // this characters will be removed from the string in order not to interfere with
-            // the checks we perform below, when deciding if the first character after a
-            // a newline is uppercase or not
-            String str = content.substring(start, current).replaceAll("['\"-]", "").trim();
-            int strLen = str.length();
-            int cur = 0;
-            ArrayList<Integer> positions = new ArrayList<>();
-            int pos;
-            // find all the newline characters in the str segment
-            while ((pos = str.indexOf('\n', cur)) != -1 ) {
-                positions.add((pos+1) % strLen);
-                cur = pos + 1;
-            }
-            // remove last entry if it 0
-            positions.removeIf(integer -> integer == 0);
-
-            cur = 0;
-            while (positions.size() > 0) {
-                int p = positions.remove(0);
-                // check if the character after newLine is capital
-                // and add it as a separate sentence or secondary title
-                // if it has less than SECONDARY_TITLE_MIN_WORDS
-                while (Character.isWhitespace(str.charAt(p)) || Character.isSpaceChar(str.charAt(p))) p++;
-                if (Character.isUpperCase(str.charAt(p))) {
-                    if (str.substring(cur, p).split("\\s+").length < SECONDARY_TITLE_MIN_WORDS) {
-                        sentences.add(str.substring(cur, p).trim().toUpperCase());
-                        cur = p;
-                    } else {
-                        sentences.add(str.substring(cur, p).trim());
-                        cur = p;
-                    }
-                }
-            }
-
-            sentences.add(str.substring(cur).trim());
-            start = current;
-            current = iterator.next();
-            steps = 4;
-        }
-        // add the last sentence in the list
-        sentences.add(content.substring(start).trim());
-        return sentences.stream().filter(s -> !s.isEmpty()).collect(Collectors.toList());
     }
 
     public List<Paragraph> extractParagraphs() {
@@ -278,7 +115,7 @@ public class TextExtractor {
                     titleNotFound = false;
                 } else if (Character.isUpperCase(sent.charAt(0))  // subtitle
                         && sent.charAt(sent.length() - 1) != '.'
-                        && sent.split("\\s+").length <= 9) {
+                        && sent.split("\\s+").length <= SECONDARY_TITLE_MIN_WORDS) {
                     p.addSentence(new Sentence(sent, SentenceType.SUBTITLE, sentPos, sentPosInPar));
                 } else { // single sentence paragraph
                     p.addSentence(new Sentence(sent, SentenceType.SENTENCE, sentPos, sentPosInPar));

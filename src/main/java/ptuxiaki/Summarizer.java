@@ -1,9 +1,7 @@
 package ptuxiaki;
 
 
-import org.apache.commons.collections4.ComparatorUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptuxiaki.datastructures.Conf;
@@ -24,12 +22,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.log10;
-import static java.lang.Math.min;
 import static java.lang.Math.round;
 import static ptuxiaki.utils.MathUtils.log2p;
 import static ptuxiaki.utils.MathUtils.log3;
 import static ptuxiaki.utils.PropertyKey.*;
-import static ptuxiaki.utils.SentenceUtils.stemSentence;
 
 
 public class Summarizer {
@@ -62,24 +58,6 @@ public class Summarizer {
      * @param mtw the size of the medially titles glossary
      * @return a double
      */
-    private double titleKeywords(String sentence, Set<Pair<String, SentenceType>> titleWords, int tw, int mtw) {
-        double a = Double.valueOf(Conf.getOrDefault("a", "0.6"));
-        double b = Double.valueOf(Conf.getOrDefault("b", "0.4"));
-        int tt = 0, mtt = 0;
-        for (Pair<String, SentenceType> word : titleWords) {
-            final List<String> stemmed = Arrays.asList(stemSentence(sentence).split("\\s+"));
-            if (stemmed.contains(word.getKey())) {
-                if (word.getValue().equals(SentenceType.TITLE)) {
-                    tt++;
-                } else if (word.getValue().equals(SentenceType.SUBTITLE)) {
-                    mtt++;
-                }
-            }
-        }
-        if (tt == 0 && mtt == 0) return 0;
-        return (a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw)));
-    }
-
     private double titleKeywords(Sentence sentence, Set<Pair<String, SentenceType>> titleWords, int tw, int mtw) {
         double a = Double.valueOf(Conf.getOrDefault("a", "0.6"));
         double b = Double.valueOf(Conf.getOrDefault("b", "0.4"));
@@ -96,7 +74,6 @@ public class Summarizer {
         if (tt == 0 && mtt == 0) return 0;
         return (a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw)));
     }
-
 
     private void summarizeFile(final String filePath, int docId) throws IOException {
         /***********************************Load properties values************************************************/
@@ -130,8 +107,9 @@ public class Summarizer {
             LOG.info(p.toString());
         }
 
-        // construct the global title dictionary.
-        // Each sentence has an enum description denoting if it is a primary of medially title
+        // Construct the global title dictionary.
+        // Constructing a Set of Pair objec. Each Pair object  is a <word, enum> denoting if the word
+        // is from a title or from a medially title. The word is stored as a stem of the original
         Set<Pair<String, SentenceType>> titleWords = new HashSet<>();
         for (Sentence s : titles) {
             for (String str : s.getStemmedTerms()) {
@@ -139,6 +117,8 @@ public class Summarizer {
             }
         }
 
+        // if isf algorithm is picked for sentence weight, then we need to count
+        // how many times a term is present in each sentence.
         HashMap<String, Integer> termsOccurrences = new HashMap<>();
         if (sw.equals(ISF)) {
             // Compute data for ISF
@@ -169,7 +149,11 @@ public class Summarizer {
             mTitleTermsCount = 1;
         }
 
-//        LOG.info(String.format("========%s========", fileName));
+        LOG.info(String.format("========%s========", fileName));
+
+        // the list that holds the weight of each sentence.
+        // The double value is the the weight while and the int value
+        // is the index in the list of sentences
         List<Pair<Double, Integer>> weights = new ArrayList<>();
 
         for (int i = 0; i < size; i++) {
@@ -205,7 +189,6 @@ public class Summarizer {
             }
         } else if (pw.equals(NAR)) {
             // news article algorithm
-            int totalNumOfSentences = size;
             int sp = paragraphs.size();
             int j = 0;
             for (Paragraph par : paragraphs) {
@@ -213,7 +196,7 @@ public class Summarizer {
                 final int sip = par.numberOfSentences();
                 for (int k = 0;  k < sip && k < size; k++) {
                     final int spip = k + 1; // we don't want 0 based indexing for sentence location in paragraph
-                    if (j < totalNumOfSentences) {
+                    if (j < size) {
                         sl[j++] = ((double) (sp - p + 1) / sp) * ((double) (sip - spip + 1) / sip);
                     }
                 }
@@ -241,6 +224,7 @@ public class Summarizer {
             summarySents = 3;
         }
 
+        // sort the list based on the weight of each sentence
         weights.sort(Comparator.reverseOrder());
         // keep the indices of the most relevant sentences and then sort them
         List<Integer> selSentIdx = weights.stream().map(Pair::getValue).collect(Collectors.toList()).subList(0, summarySents);
@@ -248,7 +232,8 @@ public class Summarizer {
         String summaryFileName = fileName.concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (Integer i : selSentIdx) {
-                fos.write(sentences.get(i).getText()
+                fos.write(sentences.get(i)
+                        .getText()
                         .trim()
                         .concat(System.lineSeparator())
                         .getBytes(Charset.forName("UTF-8"))

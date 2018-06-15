@@ -111,22 +111,23 @@ public class Summarizer {
         int begin = filePath.lastIndexOf(File.separatorChar) + 1;
         String fileName = filePath.substring(begin);
         extractor.setFile(filePath);
-        List<String> oldSentences = extractor.extractSentences();
-        List<String> oldTitles = oldSentences.stream().filter(s -> s.equals(s.toUpperCase())).collect(Collectors.toList());
-        List<Sentence> titles = new ArrayList<>();
+
         List<Paragraph> paragraphs = extractor.extractParagraphs();
-        // remove sentences that have less than minWords words
+
+        // remove sentences that have less than minWords
         for (Paragraph p : paragraphs) {
             p.removeSentencesWithLessThan(minWords);
         }
+
         List<Sentence> sentences = new ArrayList<>();
         for (Paragraph p : paragraphs) {
             sentences.addAll(p.getAllSentences());
         }
-        titles = sentences.stream().filter(s -> s.isSubTitle() || s.isTitle()).collect(Collectors.toList());
+
+        List<Sentence> titles = sentences.stream().filter(s -> s.isSubTitle() || s.isTitle()).collect(Collectors.toList());
 
         for (Paragraph p : paragraphs) {
-            System.out.println(p);
+            LOG.info(p.toString());
         }
 
         // construct the global title dictionary.

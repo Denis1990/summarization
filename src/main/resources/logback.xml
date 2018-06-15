@@ -26,7 +26,7 @@
         <encoder>
             <charset>UTF-8</charset>
             <!-- %d %-4relative [%thread] %-5level %logger{35} - -->
-            <pattern>[%msg]%n</pattern>
+            <pattern>%msg%n</pattern>
         </encoder>
     </appender>
 

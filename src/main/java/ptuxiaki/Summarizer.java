@@ -75,7 +75,7 @@ public class Summarizer {
         return (a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw)));
     }
 
-    private void summarizeFile(final String filePath, int docId) throws IOException {
+    private void summarizeFile(final String filePath) throws IOException {
         /***********************************Load properties values************************************************/
         int minWords = Conf.minimumWords();
         double wsl = Conf.sentenceLocationWeight(); // weight sentence location
@@ -255,10 +255,9 @@ public class Summarizer {
         }
 
         try {
-            int docId = 0;
             for (File f : dir.toFile().listFiles()) {
                 try {
-                    summarizeFile(f.toString(), docId++);
+                    summarizeFile(f.toString());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

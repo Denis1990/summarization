@@ -72,6 +72,7 @@ public class Summarizer {
             }
         }
         if (tt == 0 && mtt == 0) return 0;
+        sentence.setTitleTerm((a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw))));
         return (a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw)));
     }
 
@@ -90,6 +91,8 @@ public class Summarizer {
         extractor.setFile(filePath);
 
         List<Paragraph> paragraphs = extractor.extractParagraphs();
+
+        int size = paragraphs.stream().map(Paragraph::getAllSentences).mapToInt(Collection::size).sum();
 
         // remove sentences that have less than minWords
         for (Paragraph p : paragraphs) {
@@ -136,7 +139,6 @@ public class Summarizer {
             }
         }
 
-        int size = sentences.size();
         double tt[] = new double[size];
         double sentWeight[] = new double[size];
         double sl[] = new double[size];
@@ -156,16 +158,17 @@ public class Summarizer {
         // is the index in the list of sentences
         List<Pair<Double, Integer>> weights = new ArrayList<>();
 
-        for (int i = 0; i < size; i++) {
+        for (Sentence s : sentences) {
+            final int i = s.getPosition();
             /** Calculate Title Term weight */
             // use log functions to determine importance see paper B47
-            tt[i] = titleKeywords(sentences.get(i), titleWords, titleTermsCount, mTitleTermsCount);
+            tt[i] = titleKeywords(s, titleWords, titleTermsCount, mTitleTermsCount);
 
             /**Calculate sentence weight based on IDF or ISF */
             if (sw.equals(IDF)) {
                 // tfIdf sentence weight
-                sentWeight[i] = indexer.assignSentenceWeight(sentences.get(i), fileName);
-                LOG.info(String.format("sentence: %s tt: %f", sentences.get(i).getStemmedTermsAsList(), tt[i]));
+                sentWeight[i] = indexer.assignSentenceWeight(s, fileName);
+                LOG.info(String.format("sentence: %s tt: %f", s.getStemmedTermsAsList(), tt[i]));
             } else if (sw.equals(ISF)) {
                 // ISF sentence weight
                 for (String word : sentences.get(i).getStemmedTermsAsList()) {
@@ -174,6 +177,7 @@ public class Summarizer {
                     LOG.info(String.format("\tword: %s tf: %f isf: %f", word, tfVal, isfVal));
                     sentWeight[i] += tfVal * isfVal;
                 }
+                s.setWeight(sentWeight[i]);
                 LOG.info(String.format("sentence: %s tfIsf: %f tt: %f", sentences.get(i), sentWeight[i], tt[i]));
             }
         }
@@ -184,8 +188,10 @@ public class Summarizer {
             for (Paragraph p : paragraphs) {
                 // get the first sentence
                 final Sentence s = p.getFirstSentence();
+                if (s.isTitle() || s.isSubTitle()) continue;
                 final int idx = s.getPosition();
                 sentWeight[idx] += sentWeight[idx] * 0.85;
+                s.setSentLocationWeight(sentWeight[idx] * 0.85);
             }
         } else if (pw.equals(NAR)) {
             // news article algorithm
@@ -198,8 +204,18 @@ public class Summarizer {
                     final int spip = k + 1; // we don't want 0 based indexing for sentence location in paragraph
                     if (j < size) {
                         sl[j++] = ((double) (sp - p + 1) / sp) * ((double) (sip - spip + 1) / sip);
+                        sentences.get(j-1).setSentLocationWeight(sl[j-1]);
                     }
                 }
+            }
+        }
+
+        System.out.println("File: " + fileName);
+        for (Sentence s : sentences) {
+            assert tt[s.getPosition()] == s.getTitleTerm() : "tt Difference in " + s.getPosition();
+            assert sentWeight[s.getPosition()] == s.getWeight() : "Diference in " + s.getPosition();
+            if (pw.equals(NAR)) {
+                assert sl[s.getPosition()] == s.getSentLocationWeight() : "sl difference in " + s.getPosition();
             }
         }
 
@@ -223,6 +239,7 @@ public class Summarizer {
         if (summarySents < 3 && size > 3) {
             summarySents = 3;
         }
+
 
         // sort the list based on the weight of each sentence
         weights.sort(Comparator.reverseOrder());

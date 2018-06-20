@@ -33,6 +33,8 @@ public class Sentence {
      */
     private double titleTerm;
 
+    private double sentenceLocation;
+
     /**
      * Position inside the document
      * i.e first sentence third sentence etc
@@ -146,6 +148,13 @@ public class Sentence {
         this.titleTerm = titleTerm;
     }
 
+    public void setSentLocationWeight(double sl) {
+        this.sentenceLocation = sl;
+    }
+
+    public double getSentLocationWeight() {
+        return this.sentenceLocation;
+    }
     public int getPosition() {
         return position;
     }

@@ -22,7 +22,6 @@ import java.io.IOException;
  * sigma to sigma), and with diacritics removed. This can be achieved by using
  * either {@link GreekLowerCaseFilter} or ICUFoldingFilter before GreekStemFilter.
  *
- * @lucene.experimental
  */
 
 public final class MyGreekStemFilter extends TokenFilter {

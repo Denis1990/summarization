@@ -4,8 +4,9 @@ import ptuxiaki.utils.SentenceUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-public class Sentence {
+public class Sentence implements Comparable<Sentence> {
     /**
      * Sentence text
      */
@@ -23,17 +24,23 @@ public class Sentence {
     private SentenceType type;
 
     /**
-     * Sentence weight whether tf*Idf or tf*ISF
+     * Sentence termsWeight whether tf*Idf or tf*ISF
      */
-    private double weight;
+    private double termsWeight;
 
     /**
-     * The weight based on how many title terms
+     * The termsWeight based on how many title terms
      * this sentence has.
      */
-    private double titleTerm;
+    private double titleTermWeight;
 
-    private double sentenceLocation;
+    private double sentenceLocationWeight;
+
+    /**
+     * The composite weight calculated using
+     * titleTermWeight, sentenceLocationWeight and termsWeight
+     */
+    private double sentenceWeight;
 
     /**
      * Position inside the document
@@ -94,8 +101,8 @@ public class Sentence {
         this.type = type;
         this.position = position;
         this.parPosition = parPosition;
-        this.weight = 0.0;
-        this.titleTerm = 0.0;
+        this.termsWeight = -1.0;
+        this.titleTermWeight = -1.0;
         this.stemmedText = SentenceUtils.stemSentence(text);
         this.wordsCount = text.split("\\s+").length;
     }
@@ -132,39 +139,92 @@ public class Sentence {
         this.type = type;
     }
 
-    public double getWeight() {
-        return weight;
+    public double getTermsWeight() {
+        return termsWeight;
     }
 
-    public void setWeight(double weight) {
-        this.weight = weight;
+    public void setTermsWeight(double termsWeight) {
+        this.termsWeight = termsWeight;
     }
 
-    public double getTitleTerm() {
-        return titleTerm;
+    /**
+     * <p>Update the value of term termsWeight.</p>
+     * This method is called on baxendales algorithm to essentially boost
+     * the termsWeight of the first sentence of the paragraph
+     * @param wsl the coefficient to multiply with
+     */
+    public void updateTermsWeight(double wsl) {
+        termsWeight += (termsWeight * wsl);
     }
 
-    public void setTitleTerm(double titleTerm) {
-        this.titleTerm = titleTerm;
+    public double getTitleTermWeight() {
+        return titleTermWeight;
     }
 
-    public void setSentLocationWeight(double sl) {
-        this.sentenceLocation = sl;
+    public void setTitleTermWeight(double titleTermWeight) {
+        this.titleTermWeight = titleTermWeight;
+    }
+
+    public void setSLWeight(final double c) {
+        if (sentenceLocationWeight == 0) {
+            sentenceLocationWeight = c;
+        } else {
+            sentenceLocationWeight *= c;
+        }
     }
 
     public double getSentLocationWeight() {
-        return this.sentenceLocation;
+        return this.sentenceLocationWeight;
     }
+
     public int getPosition() {
         return position;
     }
 
-    public int getParPosition() {
-        return parPosition;
+    public boolean isFirstInParagraph() {
+        return parPosition == 0;
     }
 
     @Override
     public String toString() {
         return String.format("%s | %s | %d | %d", text, type.toString(), parPosition, position);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Sentence)) return false;
+        Sentence sentence = (Sentence) o;
+        return Objects.equals(text, sentence.text) &&
+                Objects.equals(stemmedText, sentence.stemmedText) &&
+                type == sentence.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(text, stemmedText, type);
+    }
+
+    /**
+     * Compute the total termsWeight of the sentence.
+     * Add the 3 individual termsWeight multiplying each by it's coeffient first.
+     * @param wtt Title term coefficient
+     * @param wst Term termsWeight coefficient
+     * @param wsl Sentence location coefficient
+     * @return the total termsWeight according to equation (wtt * tt) + (wsl * sl) + (wst * st)
+     */
+    public void compositeWeight(double wtt, double wst, double wsl) {
+        sentenceWeight = wtt * titleTermWeight + wst * termsWeight + wsl * sentenceLocationWeight;
+    }
+
+    @Override
+    public int compareTo(Sentence s) {
+        if (this.sentenceWeight < s.sentenceWeight) {
+            return -1;
+        } else if (this.sentenceWeight < s.sentenceWeight) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 }

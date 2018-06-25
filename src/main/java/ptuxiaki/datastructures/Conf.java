@@ -117,4 +117,12 @@ public class Conf {
         return prop == null ? defaultValue : prop;
     }
 
+    @Override
+    public String toString() {
+        if (conf == null) {
+            return "{}";
+        } else {
+            return props.toString();
+        }
+    }
 }

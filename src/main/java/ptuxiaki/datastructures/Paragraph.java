@@ -44,14 +44,6 @@ public class Paragraph {
         this.pos = parPosition;
     }
 
-    public List<Sentence> getTitles() {
-        return sentences.stream().filter(Sentence::isTitle).collect(Collectors.toList());
-    }
-
-    public List<Sentence> getSubTitles() {
-        return sentences.stream().filter(Sentence::isSubTitle).collect(Collectors.toList());
-    }
-
     public int numberOfSentences() {
         return sentences.size();
     }

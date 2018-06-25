@@ -334,7 +334,7 @@ public class Indexer {
             tfIdf += tfVal * idfVal;
             LOG.info(String.format("\tword: %s tf: %f idf: %f", w, tfVal, idfVal));
         }
-        sentence.setWeight(tfIdf);
+        sentence.setTermsWeight(tfIdf);
         return tfIdf;
     }
 

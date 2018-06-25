@@ -72,15 +72,16 @@ public class Summarizer {
             }
         }
         if (tt == 0 && mtt == 0) return 0;
+        sentence.setTitleTermWeight((a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw))));
         return (a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw)));
     }
 
     private void summarizeFile(final String filePath) throws IOException {
         /***********************************Load properties values************************************************/
         int minWords = Conf.minimumWords();
-        double wsl = Conf.sentenceLocationWeight(); // weight sentence location
-        double wst = Conf.sentenceTermsWeight(); // weight sentence terms
-        double wtt = Conf.titleTermsWeight(); // weight title terms
+        double wsl = Conf.sentenceLocationWeight(); // weight sentence location coefficient
+        double wst = Conf.sentenceTermsWeight(); // weight sentence terms coefficient
+        double wtt = Conf.titleTermsWeight(); // weight title terms coefficient
         String sw = Conf.sentenceWeight(); // sentence weight function
         String pw = Conf.paragraphWeight(); // sentence location weight function
         double compress = Conf.compressRation() / 100.0;
@@ -91,7 +92,10 @@ public class Summarizer {
 
         List<Paragraph> paragraphs = extractor.extractParagraphs();
 
+        int size = paragraphs.stream().map(Paragraph::getAllSentences).mapToInt(Collection::size).sum();
+
         // remove sentences that have less than minWords
+        // FIXME: don't remove sentences, just ignore them when calculating weights
         for (Paragraph p : paragraphs) {
             p.removeSentencesWithLessThan(minWords);
         }
@@ -101,20 +105,18 @@ public class Summarizer {
             sentences.addAll(p.getAllSentences());
         }
 
-        List<Sentence> titles = sentences.stream().filter(s -> s.isSubTitle() || s.isTitle()).collect(Collectors.toList());
-
-        for (Paragraph p : paragraphs) {
-            LOG.info(p.toString());
-        }
-
         // Construct the global title dictionary.
-        // Constructing a Set of Pair objec. Each Pair object  is a <word, enum> denoting if the word
+        // Constructing a Set of Pair objects. Each Pair object  is a <word, enum> denoting if the word
         // is from a title or from a medially title. The word is stored as a stem of the original
         Set<Pair<String, SentenceType>> titleWords = new HashSet<>();
-        for (Sentence s : titles) {
+        sentences.stream().filter(s -> s.isSubTitle() || s.isTitle()).collect(Collectors.toList()).forEach(s -> {
             for (String str : s.getStemmedTerms()) {
                 titleWords.add(Pair.of(str, s.isTitle() ? SentenceType.TITLE : SentenceType.SUBTITLE));
             }
+        });
+
+        for (Paragraph p : paragraphs) {
+            LOG.info(p.toString());
         }
 
         // if isf algorithm is picked for sentence weight, then we need to count
@@ -136,12 +138,6 @@ public class Summarizer {
             }
         }
 
-        int size = sentences.size();
-        double tt[] = new double[size];
-        double sentWeight[] = new double[size];
-        double sl[] = new double[size];
-
-
         int titleTermsCount = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.TITLE)).count();
         int mTitleTermsCount = (int)titleWords.stream().filter(p -> p.getValue().equals(SentenceType.SUBTITLE)).count();
         // in order to avoid calculating log(0)
@@ -151,41 +147,40 @@ public class Summarizer {
 
         LOG.info(String.format("========%s========", fileName));
 
-        // the list that holds the weight of each sentence.
-        // The double value is the the weight while and the int value
-        // is the index in the list of sentences
-        List<Pair<Double, Integer>> weights = new ArrayList<>();
-
-        for (int i = 0; i < size; i++) {
+        for (Sentence s : sentences) {
+            final int i = s.getPosition();
             /** Calculate Title Term weight */
             // use log functions to determine importance see paper B47
-            tt[i] = titleKeywords(sentences.get(i), titleWords, titleTermsCount, mTitleTermsCount);
+            s.setTitleTermWeight(
+                    titleKeywords(s, titleWords, titleTermsCount, mTitleTermsCount)
+            );
 
-            /**Calculate sentence weight based on IDF or ISF */
+            /** Calculate sentence weight based on IDF or ISF */
             if (sw.equals(IDF)) {
                 // tfIdf sentence weight
-                sentWeight[i] = indexer.assignSentenceWeight(sentences.get(i), fileName);
-                LOG.info(String.format("sentence: %s tt: %f", sentences.get(i).getStemmedTermsAsList(), tt[i]));
+                indexer.assignSentenceWeight(s, fileName);
+                LOG.info(String.format("sentence: %s tt: %f", s.getStemmedTermsAsList(), s.getTitleTermWeight()));
             } else if (sw.equals(ISF)) {
+                double sum = 0;
                 // ISF sentence weight
                 for (String word : sentences.get(i).getStemmedTermsAsList()) {
                     final double tfVal = indexer.tf(word, fileName);
                     final double isfVal = log10((double)size / termsOccurrences.getOrDefault(word, 1));
                     LOG.info(String.format("\tword: %s tf: %f isf: %f", word, tfVal, isfVal));
-                    sentWeight[i] += tfVal * isfVal;
+                    sum += tfVal * isfVal;
                 }
-                LOG.info(String.format("sentence: %s tfIsf: %f tt: %f", sentences.get(i), sentWeight[i], tt[i]));
+                s.setTermsWeight(sum);
+                LOG.info(String.format("sentence: %s tfIsf: %f tt: %f", sentences.get(i), s.getTermsWeight(), s.getTitleTermWeight()));
             }
         }
 
-        /** Calculate sentence weight based on paragraphs */
+        /** Calculate sentence weight based on location inside the paragraph */
         if (pw.equals(BAX)) {
-            // baxendales algorithm
-            for (Paragraph p : paragraphs) {
-                // get the first sentence
-                final Sentence s = p.getFirstSentence();
-                final int idx = s.getPosition();
-                sentWeight[idx] += sentWeight[idx] * 0.85;
+            // baxendale algorithm
+            for (Sentence s : sentences) {
+                if (s.isFirstInParagraph() && !(s.isTitle() || s.isSubTitle())) {
+                    s.updateTermsWeight(wsl);
+                }
             }
         } else if (pw.equals(NAR)) {
             // news article algorithm
@@ -194,29 +189,29 @@ public class Summarizer {
             for (Paragraph par : paragraphs) {
                 final int p = par.getPositionInDocument();
                 final int sip = par.numberOfSentences();
-                for (int k = 0;  k < sip && k < size; k++) {
-                    final int spip = k + 1; // we don't want 0 based indexing for sentence location in paragraph
-                    if (j < size) {
-                        sl[j++] = ((double) (sp - p + 1) / sp) * ((double) (sip - spip + 1) / sip);
+                // check if this paragraph has only one sentence
+                // and if is title or subtitle exclude it.
+                if (sip == 1) {
+                    if(par.getFirstSentence().isSubTitle() || par.getFirstSentence().isTitle()) {
+                        // update j though in order to not loose the global order of the sentences list
+                        j++;
+                        continue;
                     }
+                }
+                for (int spip = 0; spip < sip; spip++) {
+                    sentences.get(j).setSLWeight(((double) (sp - p) / sp) * ((double) (sip - spip) / sip));
+                    j++;
                 }
             }
         }
 
         /** Calculate combined weights value */
-        // a * tt + b * st + c * sl
-        for (int i = 0; i < size; i++) {
-            //TODO: Add sl into the equation
-            double w = 0.0;
-            if (pw.equals(NAR)) {
-                w = (wtt * tt[i]) + (wst * sentWeight[i]) + (wsl * sl[i]);
-            } else {
-                w = (wtt * tt[i]) + (wst * sentWeight[i]);
-            }
-            weights.add(Pair.of(w, i));
-        }
+        sentences.forEach(s -> s.compositeWeight(wtt, wst, wsl));
 
-        /** Calcuate the number of sentences we will keep based on compress ratio */
+        /** Sort based on that */
+        Collections.sort(sentences);
+
+        /** Calculate the number of sentences we will keep based on compress ratio */
         int summarySents = (int)(size - (round(size * compress)));
         // If the document has too few sentences by default
         // write the 3 most important
@@ -224,16 +219,15 @@ public class Summarizer {
             summarySents = 3;
         }
 
-        // sort the list based on the weight of each sentence
-        weights.sort(Comparator.reverseOrder());
-        // keep the indices of the most relevant sentences and then sort them
-        List<Integer> selSentIdx = weights.stream().map(Pair::getValue).collect(Collectors.toList()).subList(0, summarySents);
-        selSentIdx.sort(Comparator.naturalOrder());
+        // take a sublist of the sentences list and sort it by sentence position. this way we have the most
+        // relevant sentences and we can show them in the order they appear in the original document
+        List<Sentence> selectedSentences = sentences.subList(0, summarySents);
+        selectedSentences.sort(Comparator.comparingInt(Sentence::getPosition));
+
         String summaryFileName = fileName.concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
-            for (Integer i : selSentIdx) {
-                fos.write(sentences.get(i)
-                        .getText()
+            for (Sentence s : selectedSentences) {
+                fos.write(s.getText()
                         .trim()
                         .concat(System.lineSeparator())
                         .getBytes(Charset.forName("UTF-8"))

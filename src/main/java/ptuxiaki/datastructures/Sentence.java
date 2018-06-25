@@ -34,6 +34,9 @@ public class Sentence implements Comparable<Sentence> {
      */
     private double titleTermWeight;
 
+    /**
+     * Weight based on the position inside the paragraph
+     */
     private double sentenceLocationWeight;
 
     /**
@@ -135,10 +138,6 @@ public class Sentence implements Comparable<Sentence> {
         return this.wordsCount;
     }
 
-    public void setType(SentenceType type) {
-        this.type = type;
-    }
-
     public double getTermsWeight() {
         return termsWeight;
     }
@@ -157,6 +156,18 @@ public class Sentence implements Comparable<Sentence> {
         termsWeight += (termsWeight * wsl);
     }
 
+    /**
+     * Compute the total termsWeight of the sentence.
+     * Add the 3 individual termsWeight multiplying each by it's coeffient first.
+     * @param wtt Title term coefficient
+     * @param wst Term termsWeight coefficient
+     * @param wsl Sentence location coefficient
+     * @return the total termsWeight according to equation (wtt * tt) + (wsl * sl) + (wst * st)
+     */
+    public void compositeWeight(double wtt, double wst, double wsl) {
+        sentenceWeight = wtt * titleTermWeight + wst * termsWeight + wsl * sentenceLocationWeight;
+    }
+
     public double getTitleTermWeight() {
         return titleTermWeight;
     }
@@ -173,10 +184,6 @@ public class Sentence implements Comparable<Sentence> {
         }
     }
 
-    public double getSentLocationWeight() {
-        return this.sentenceLocationWeight;
-    }
-
     public int getPosition() {
         return position;
     }
@@ -187,7 +194,7 @@ public class Sentence implements Comparable<Sentence> {
 
     @Override
     public String toString() {
-        return String.format("%s | %s | %d | %d", text, type.toString(), parPosition, position);
+        return String.format("%s | %s | %d | %d | %f | %f | %f", text, type.toString(), parPosition, position, titleTermWeight, sentenceWeight, sentenceLocationWeight);
     }
 
     @Override
@@ -203,18 +210,6 @@ public class Sentence implements Comparable<Sentence> {
     @Override
     public int hashCode() {
         return Objects.hash(text, stemmedText, type);
-    }
-
-    /**
-     * Compute the total termsWeight of the sentence.
-     * Add the 3 individual termsWeight multiplying each by it's coeffient first.
-     * @param wtt Title term coefficient
-     * @param wst Term termsWeight coefficient
-     * @param wsl Sentence location coefficient
-     * @return the total termsWeight according to equation (wtt * tt) + (wsl * sl) + (wst * st)
-     */
-    public void compositeWeight(double wtt, double wst, double wsl) {
-        sentenceWeight = wtt * titleTermWeight + wst * termsWeight + wsl * sentenceLocationWeight;
     }
 
     @Override

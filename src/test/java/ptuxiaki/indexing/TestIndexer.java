@@ -1,5 +1,6 @@
 package ptuxiaki.indexing;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class TestIndexer {
     }
 
     @Test
-    public void testTf() {
+    public void testTfAndIdf() {
         double [] tfs = new double[fileNames.length];
         // word βολτ exists in one documents, 1 time
         // doc1 has 10 terms so the tf should be 0,1
@@ -40,14 +41,10 @@ public class TestIndexer {
             tfs[i] = indexer.tf("βολτ", fileNames[i]);
         }
         Assert.assertArrayEquals(tfs, new double [] { 0.1, 0.14, 0 }, 0.01);
-    }
 
-    @Test
-    public void testIdf() {
         double [] idfs = new double[fileNames.length];
         for (int i = 0; i < fileNames.length; i++) {
             idfs[i] = indexer.idf("βολτ");
         }
-
     }
 }

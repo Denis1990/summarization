@@ -30,12 +30,14 @@ import static ptuxiaki.utils.PropertyKey.*;
 
 public class Summarizer {
     public static final Path SUMMARY_DIR = Paths.get("summaries");
+    public Conf conf;
 
     private static Logger LOG = LoggerFactory.getLogger(Summarizer.class);
     private TextExtractor extractor;
     private Indexer indexer;
 
     public Summarizer() {
+        this.conf = Conf.instance();
         this.extractor = new TextExtractor();
         if (!Files.exists(SUMMARY_DIR)) {
             try {
@@ -59,8 +61,8 @@ public class Summarizer {
      * @return a double
      */
     private double titleKeywords(Sentence sentence, Set<Pair<String, SentenceType>> titleWords, int tw, int mtw) {
-        double a = Double.valueOf(Conf.getOrDefault("a", "0.6"));
-        double b = Double.valueOf(Conf.getOrDefault("b", "0.4"));
+        double a = Double.valueOf(conf.getOrDefault("a", "0.6"));
+        double b = Double.valueOf(conf.getOrDefault("b", "0.4"));
         int tt = 0, mtt = 0;
         for (Pair<String, SentenceType> word : titleWords) {
             if (sentence.getStemmedTermsAsList().contains(word.getKey())) {
@@ -78,13 +80,13 @@ public class Summarizer {
 
     private void summarizeFile(final String filePath) throws IOException {
         /***********************************Load properties values************************************************/
-        int minWords = Conf.minimumWords();
-        double wsl = Conf.sentenceLocationWeight(); // weight sentence location coefficient
-        double wst = Conf.sentenceTermsWeight(); // weight sentence terms coefficient
-        double wtt = Conf.titleTermsWeight(); // weight title terms coefficient
-        String sw = Conf.sentenceWeight(); // sentence weight function
-        String pw = Conf.paragraphWeight(); // sentence location weight function
-        double compress = Conf.compressRation() / 100.0;
+        int minWords = conf.minimumWords();
+        double wsl = conf.sentenceLocationWeight(); // weight sentence location coefficient
+        double wst = conf.sentenceTermsWeight(); // weight sentence terms coefficient
+        double wtt = conf.titleTermsWeight(); // weight title terms coefficient
+        String sw = conf.sentenceWeight(); // sentence weight function
+        String pw = conf.paragraphWeight(); // sentence location weight function
+        double compress = conf.compressRation() / 100.0;
 
         int begin = filePath.lastIndexOf(File.separatorChar) + 1;
         String fileName = filePath.substring(begin);

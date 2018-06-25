@@ -80,8 +80,6 @@ public class Indexer {
 
         this.metadata = new Metadata();
         this.tika = new Tika();
-        // TODO maybe this needs to be set dynamically instead of this fixed value
-        //this.tika.setMaxStringLength(10 * 1024 * 1024);
     }
 
     /**
@@ -182,7 +180,7 @@ public class Indexer {
 
     public Indexer(final String directory) throws IOException {
         this.indexDirectory = directory;
-        if (Conf.stemmerClass().equals(PropertyKey.NNKSTEMER)) {
+        if (Conf.instance().stemmerClass().equals(PropertyKey.NNKSTEMER)) {
             setUp(new MyGreekAnalyzer());
         } else {
             setUp(new GreekAnalyzer());
@@ -342,6 +340,7 @@ public class Indexer {
      * @see org.apache.lucene.index.IndexWriter#commit()
      */
     public void commit() throws IOException {
+
         index.commit();
         docNum = index.numDocs();
         index.close();

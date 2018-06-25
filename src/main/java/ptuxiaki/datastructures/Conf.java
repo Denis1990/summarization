@@ -57,11 +57,11 @@ public class Conf {
 
     /*==========================================================*/
 
-    public static int minimumWords() {
+    public int minimumWords() {
         return Integer.parseInt(props.getProperty(PropertyKey.MINIMUN_WORDS));
     }
 
-    public static int compressRation() {
+    public int compressRation() {
         return Integer.parseInt(props.getProperty(PropertyKey.COMPRESS));
     }
 
@@ -69,7 +69,7 @@ public class Conf {
      * Coefficient for wsl
      * @return
      */
-    public static double sentenceLocationWeight() {
+    public double sentenceLocationWeight() {
         return Double.parseDouble(props.getProperty(PropertyKey.WSL));
     }
 
@@ -77,7 +77,7 @@ public class Conf {
      * Coefficient for wst
      * @return
      */
-    public static double sentenceTermsWeight() {
+    public double sentenceTermsWeight() {
         return Double.parseDouble(props.getProperty(PropertyKey.WST));
     }
 
@@ -85,7 +85,7 @@ public class Conf {
      * Coefficient for tt
      * @return
      */
-    public static double titleTermsWeight() {
+    public double titleTermsWeight() {
         return Double.parseDouble(props.getProperty(PropertyKey.WTT));
     }
 
@@ -94,7 +94,7 @@ public class Conf {
      * Possible values <strong>idf</strong> <strong>isf</strong>
      * @return
      */
-    public static String sentenceWeight() {
+    public String sentenceWeight() {
         return props.getProperty(PropertyKey.SW).toLowerCase();
     }
 
@@ -103,16 +103,16 @@ public class Conf {
      * Possible values <strong>nar</strong> <strong>bax</strong>
      * @return
      */
-    public static String paragraphWeight() {
+    public String paragraphWeight() {
         return props.getProperty(PropertyKey.PW).toLowerCase();
     }
 
 
-    public static String stemmerClass() {
+    public String stemmerClass() {
         return props.getProperty(PropertyKey.STEMMER).toLowerCase();
     }
 
-    public static String getOrDefault(final String key, String defaultValue) {
+    public String getOrDefault(final String key, String defaultValue) {
         String prop = props.getProperty(key);
         return prop == null ? defaultValue : prop;
     }

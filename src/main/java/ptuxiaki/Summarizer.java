@@ -74,7 +74,6 @@ public class Summarizer {
             }
         }
         if (tt == 0 && mtt == 0) return 0;
-        sentence.setTitleTermWeight((a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw))));
         return (a * (log2p(tt)/log2p(tw))) + (b * (log3(mtt) / log3(mtw)));
     }
 
@@ -145,6 +144,10 @@ public class Summarizer {
         // in order to avoid calculating log(0)
         if (mTitleTermsCount == 0) {
             mTitleTermsCount = 1;
+        }
+
+        if (titleTermsCount == 0) {
+            titleTermsCount = 1;
         }
 
         LOG.info(String.format("========%s========", fileName));

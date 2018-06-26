@@ -25,7 +25,7 @@ public class SentenceUtils {
     }
 
     public static String stemWord(String word) {
-        if (Conf.stemmerClass().equals(PropertyKey.NNKSTEMER)) {
+        if (Conf.instance().stemmerClass().equals(PropertyKey.NNKSTEMER)) {
             return stemWordNNK(word);
         } else {
             return stemWordLucene(word);

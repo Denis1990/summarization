@@ -29,9 +29,9 @@ public class App {
         }
 
         if (properties == null) {
-            conf = conf.instance();
+            conf = Conf.instance();
         } else {
-            conf = conf.instance(properties);
+            conf = Conf.instance(properties);
         }
 
         Summarizer summarizer = new Summarizer();

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptuxiaki.Summarizer;
 import ptuxiaki.datastructures.Conf;
+import ptuxiaki.datastructures.Sentence;
 import ptuxiaki.utils.LuceneConstant;
 import ptuxiaki.utils.PropertyKey;
 import stemmer.MyGreekAnalyzer;
@@ -33,11 +34,11 @@ import static java.lang.Math.log10;
 public class Indexer {
     private static final Logger LOG = LoggerFactory.getLogger(Summarizer.class);
 
-    public static final String DEFAULT_INDEX_DIR = System.getProperty("user.home") + File.separator + "index";
-    public static final String TERM_FREQ_DOC_TFD = "termFreqDoc.tfd";
+    private static final String DEFAULT_INDEX_DIR = System.getProperty("user.home") + File.separator + "index";
+    private static final String TERM_FREQ_DOC_TFD = "termFreqDoc.tfd";
 
     // configuration for lucene index
-    public final FieldType INDEX_STORED_ANALYZED = new FieldType();
+    private final FieldType INDEX_STORED_ANALYZED = new FieldType();
 
     private String indexDirectory;
     private boolean indexExists;
@@ -79,8 +80,6 @@ public class Indexer {
 
         this.metadata = new Metadata();
         this.tika = new Tika();
-        // TODO maybe this needs to be set dynamically instead of this fixed value
-        //this.tika.setMaxStringLength(10 * 1024 * 1024);
     }
 
     /**
@@ -168,13 +167,20 @@ public class Indexer {
         }
     }
 
+    private boolean openReader() throws IOException {
+        if (reader == null || reader.getRefCount() <= 0) {
+            reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexDirectory)));
+        }
+        return reader != null;
+    }
+
     public Indexer() throws IOException {
         this(DEFAULT_INDEX_DIR);
     }
 
     public Indexer(final String directory) throws IOException {
         this.indexDirectory = directory;
-        if (Conf.stemmerClass().equals(PropertyKey.NNKSTEMER)) {
+        if (Conf.instance().stemmerClass().equals(PropertyKey.NNKSTEMER)) {
             setUp(new MyGreekAnalyzer());
         } else {
             setUp(new GreekAnalyzer());
@@ -317,37 +323,24 @@ public class Indexer {
         return log10((double) docNum / (docFreq + 1));
     }
 
-    public double computeSentenceWeight(final String sentence, int docNum) throws IOException {
+    public double assignSentenceWeight(final Sentence sentence, String file)  {
         double tfIdf = 0;
-        for (String w : sentence.split("\\s+")) {
-            tfIdf += tf(w, docNum) * idf(w);
-        }
-        return tfIdf;
-    }
-
-    public double computeSentenceWeight(final String sentence, String file)  {
-        double tfIdf = 0;
-        for (String w : sentence.split("\\s+")) {
+        LOG.info(String.format("sentence: %s tfIdf: %f", sentence, tfIdf));
+        for (String w : sentence.getStemmedTermsAsList()) {
             final double tfVal = tf(w, file);
             final double idfVal = idf(w);
             tfIdf += tfVal * idfVal;
             LOG.info(String.format("\tword: %s tf: %f idf: %f", w, tfVal, idfVal));
         }
-        LOG.info(String.format("sentence: %s tfIdf: %f", sentence, tfIdf));
+        sentence.setTermsWeight(tfIdf);
         return tfIdf;
-    }
-
-    public boolean openReader() throws IOException {
-        if (reader == null || reader.getRefCount() <= 0) {
-            reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexDirectory)));
-        }
-        return reader != null;
     }
 
     /**
      * @see org.apache.lucene.index.IndexWriter#commit()
      */
     public void commit() throws IOException {
+
         index.commit();
         docNum = index.numDocs();
         index.close();

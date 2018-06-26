@@ -1,9 +1,8 @@
 package ptuxiaki.datastructures;
 
-import org.apache.commons.lang3.tuple.Triple;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Paragraph {
 
@@ -18,9 +17,21 @@ public class Paragraph {
      * The middle element is the position of the sentence inside the paragraph.
      * The right element is the position of the sentence inside the document.
      */
-    private List<Triple<String, Integer, Integer>> sentences = new ArrayList<>();
+    private List<Sentence> sentences = new ArrayList<>();
 
-    public boolean addSentence(Triple<String, Integer, Integer> s) {
+    /**
+     * Remove any sentences from the paragraph that has less than n number
+     * of words in it.
+     * @param n
+     * @return
+     */
+    public int removeSentencesWithLessThan(int n) {
+        int oldSize = sentences.size();
+        sentences = sentences.stream().filter(s -> s.getWordsCount() > n).collect(Collectors.toList());
+        return oldSize - sentences.size();
+    }
+
+    public boolean addSentence(Sentence s) {
         return sentences.add(s);
     }
 
@@ -37,15 +48,11 @@ public class Paragraph {
         return sentences.size();
     }
 
-    public String getFirstSentence() {
+    public Sentence getFirstSentence() {
         return getIthSentence(0);
     }
 
-    public String getIthSentence(int i) {
-        return sentences.get(i).getLeft();
-    }
-
-    public Triple<String, Integer, Integer> getSentenceTriplet(int i) {
+    public Sentence getIthSentence(int i) {
         return sentences.get(i);
     }
 
@@ -53,23 +60,28 @@ public class Paragraph {
         return pos;
     }
 
-    public List<Triple<String, Integer, Integer>> getAllSentences() {
+    /**
+     * Return the sentences that have more than minWords
+     * @return
+     */
+    public List<Sentence> getAllSentences() {
         return sentences;
-    }
-
-    public boolean isEmpty() {
-        return sentences.isEmpty();
     }
 
     @Override
     public String toString() {
         StringBuilder paragraph = new StringBuilder();
-        paragraph.append("[");
-        for (Triple<String, Integer, Integer> t : sentences) {
-            paragraph.append(t.getLeft().trim());
-            paragraph.append(",");
+        paragraph.append("--");
+        for (Sentence s : sentences) {
+            if (s.getType() == SentenceType.SENTENCE) {
+                paragraph.append("\t\t").append(s.toString());
+            } else if (s.getType() == SentenceType.SUBTITLE) {
+                paragraph.append("\t").append(s.toString());
+            } else {
+                paragraph.append(s.toString());
+            }
+            paragraph.append(System.lineSeparator());
         }
-        paragraph.append("]");
         return paragraph.toString();
     }
 }

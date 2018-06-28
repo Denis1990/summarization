@@ -184,6 +184,14 @@ public class Sentence implements Comparable<Sentence> {
         }
     }
 
+    /**
+     * @param n
+     * @return True if the sentence has n or less words, False otherwise
+     */
+    public boolean hasLessThanNWords(int n) {
+        return wordsCount <= n;
+    }
+
     public int getPosition() {
         return position;
     }

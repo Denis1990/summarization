@@ -1,6 +1,7 @@
 package ptuxiaki;
 
 
+import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.log10;
+import static java.lang.Math.min;
 import static java.lang.Math.round;
 import static ptuxiaki.utils.MathUtils.log2p;
 import static ptuxiaki.utils.MathUtils.log3;
@@ -95,12 +97,6 @@ public class Summarizer {
 
         int size = paragraphs.stream().map(Paragraph::getAllSentences).mapToInt(Collection::size).sum();
 
-        // remove sentences that have less than minWords
-        // FIXME: don't remove sentences, just ignore them when calculating weights
-        for (Paragraph p : paragraphs) {
-            p.removeSentencesWithLessThan(minWords);
-        }
-
         List<Sentence> sentences = new ArrayList<>();
         for (Paragraph p : paragraphs) {
             sentences.addAll(p.getAllSentences());
@@ -153,6 +149,7 @@ public class Summarizer {
         LOG.info(String.format("========%s========", fileName));
 
         for (Sentence s : sentences) {
+            if (s.hasLessThanNWords(minWords)) continue;
             final int i = s.getPosition();
             /** Calculate Title Term weight */
             // use log functions to determine importance see paper B47
@@ -183,6 +180,7 @@ public class Summarizer {
         if (pw.equals(BAX)) {
             // baxendale algorithm
             for (Sentence s : sentences) {
+                if (s.hasLessThanNWords(minWords)) continue;
                 if (s.isFirstInParagraph() && !(s.isTitle() || s.isSubTitle())) {
                     s.updateTermsWeight(wsl);
                 }
@@ -202,8 +200,17 @@ public class Summarizer {
                         j++;
                         continue;
                     }
+
+                    if (par.getFirstSentence().hasLessThanNWords(minWords)) {
+                        j++;
+                        continue;
+                    }
                 }
                 for (int spip = 0; spip < sip; spip++) {
+                    if (sentences.get(j).hasLessThanNWords(minWords)) {
+                        j++;
+                        continue;
+                    }
                     sentences.get(j).setSLWeight(((double) (sp - p) / sp) * ((double) (sip - spip) / sip));
                     j++;
                 }

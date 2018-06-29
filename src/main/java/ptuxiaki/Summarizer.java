@@ -95,12 +95,6 @@ public class Summarizer {
 
         int size = paragraphs.stream().map(Paragraph::getAllSentences).mapToInt(Collection::size).sum();
 
-        // remove sentences that have less than minWords
-        // FIXME: don't remove sentences, just ignore them when calculating weights
-        for (Paragraph p : paragraphs) {
-            p.removeSentencesWithLessThan(minWords);
-        }
-
         List<Sentence> sentences = new ArrayList<>();
         for (Paragraph p : paragraphs) {
             sentences.addAll(p.getAllSentences());
@@ -115,10 +109,6 @@ public class Summarizer {
                 titleWords.add(Pair.of(str, s.isTitle() ? SentenceType.TITLE : SentenceType.SUBTITLE));
             }
         });
-
-        for (Paragraph p : paragraphs) {
-            LOG.info(p.toString());
-        }
 
         // if isf algorithm is picked for sentence weight, then we need to count
         // how many times a term is present in each sentence.
@@ -212,6 +202,10 @@ public class Summarizer {
 
         /** Calculate combined weights value */
         sentences.forEach(s -> s.compositeWeight(wtt, wst, wsl));
+
+        for (Paragraph p : paragraphs) {
+            LOG.info(p.toString());
+        }
 
         /** Sort based on that */
         Collections.sort(sentences);

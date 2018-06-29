@@ -187,7 +187,7 @@ public class Sentence implements Comparable<Sentence> {
 
     @Override
     public String toString() {
-        return String.format("%s | %s | %d | %d | %f | %f | %f", text, type.toString(), parPosition, position, titleTermWeight, sentenceWeight, sentenceLocationWeight);
+        return String.format("%-1.47s... | %s | %-2d | %-2d | %.4f | %.4f | %.4f | %.6f", text, type.toString(), parPosition, position, titleTermWeight, termsWeight, sentenceLocationWeight, sentenceWeight);
     }
 
     @Override

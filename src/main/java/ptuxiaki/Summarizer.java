@@ -112,10 +112,6 @@ public class Summarizer {
             }
         });
 
-        for (Paragraph p : paragraphs) {
-            LOG.info(p.toString());
-        }
-
         // if isf algorithm is picked for sentence weight, then we need to count
         // how many times a term is present in each sentence.
         HashMap<String, Integer> termsOccurrences = new HashMap<>();
@@ -219,6 +215,10 @@ public class Summarizer {
 
         /** Calculate combined weights value */
         sentences.forEach(s -> s.compositeWeight(wtt, wst, wsl));
+
+        for (Paragraph p : paragraphs) {
+            LOG.info(p.toString());
+        }
 
         /** Sort based on that */
         Collections.sort(sentences);

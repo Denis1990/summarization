@@ -73,12 +73,12 @@ public class Paragraph {
         StringBuilder paragraph = new StringBuilder();
         paragraph.append("--");
         for (Sentence s : sentences) {
-            if (s.getType() == SentenceType.SENTENCE) {
-                paragraph.append("\t\t").append(s.toString());
-            } else if (s.getType() == SentenceType.SUBTITLE) {
+            if (s.isTitle()) {
+                paragraph.append(s.toString());
+            } else if (s.isSubTitle()) {
                 paragraph.append("\t").append(s.toString());
             } else {
-                paragraph.append(s.toString());
+                paragraph.append("\t\t").append(s.toString());
             }
             paragraph.append(System.lineSeparator());
         }

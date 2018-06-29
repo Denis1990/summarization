@@ -104,8 +104,9 @@ public class Sentence implements Comparable<Sentence> {
         this.type = type;
         this.position = position;
         this.parPosition = parPosition;
-        this.termsWeight = -1.0;
-        this.titleTermWeight = -1.0;
+        this.termsWeight = -10.0;
+        this.titleTermWeight = -10.0;
+        this.sentenceLocationWeight = -10.0;
         this.stemmedText = SentenceUtils.stemSentence(text);
         this.wordsCount = text.split("\\s+").length;
     }
@@ -118,10 +119,6 @@ public class Sentence implements Comparable<Sentence> {
         return this.type == SentenceType.SUBTITLE;
     }
 
-    public SentenceType getType() {
-        return type;
-    }
-
     public String getText() {
         return this.text;
     }
@@ -132,10 +129,6 @@ public class Sentence implements Comparable<Sentence> {
 
     public List<String> getStemmedTermsAsList() {
         return Arrays.asList(this.stemmedText.split("\\s+"));
-    }
-
-    public int getWordsCount() {
-        return this.wordsCount;
     }
 
     public double getTermsWeight() {

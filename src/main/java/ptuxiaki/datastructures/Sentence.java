@@ -195,22 +195,8 @@ public class Sentence implements Comparable<Sentence> {
 
     @Override
     public String toString() {
-        return String.format("%-1.47s... | %s | %-2d | %-2d | %.4f | %.4f | %.4f | %.6f", text, type.toString(), parPosition, position, titleTermWeight, termsWeight, sentenceLocationWeight, sentenceWeight);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Sentence)) return false;
-        Sentence sentence = (Sentence) o;
-        return Objects.equals(text, sentence.text) &&
-                Objects.equals(stemmedText, sentence.stemmedText) &&
-                type == sentence.type;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(text, stemmedText, type);
+        final String s = sentenceWeight == -30 ? "X %-45.45s... | %s | %-2d | %-2d | %+2.3f | %+2.3f | %+2.3f | %+2.3f" : "%-47.47s... | %s | %-2d | %-2d | %+2.3f | %+2.3f | %+2.3f | %+2.3f";
+        return String.format(s, text, type.toString(), parPosition, position, titleTermWeight, termsWeight, sentenceLocationWeight, sentenceWeight);
     }
 
     @Override

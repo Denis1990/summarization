@@ -1,7 +1,6 @@
 package ptuxiaki;
 
 
-import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +10,7 @@ import ptuxiaki.datastructures.Sentence;
 import ptuxiaki.datastructures.SentenceType;
 import ptuxiaki.extraction.TextExtractor;
 import ptuxiaki.indexing.Indexer;
+import ptuxiaki.utils.PropertyKey;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,7 +23,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.log10;
-import static java.lang.Math.min;
 import static java.lang.Math.round;
 import static ptuxiaki.utils.MathUtils.log2p;
 import static ptuxiaki.utils.MathUtils.log3;
@@ -247,6 +246,20 @@ public class Summarizer {
             }
         }
         System.out.println("New summary saved to: " + summaryFileName);
+    }
+
+    /**
+     * Merge the two titles and sentences the Sentence position property the lower positions come first.
+     * @param sentences
+     * @param titles
+     * @return
+     */
+    private List<Sentence> merge(List<Sentence> sentences, List<Sentence> titles) {
+        List<Sentence> merged = new ArrayList<>();
+        merged.addAll(sentences);
+        merged.addAll(titles);
+        merged.sort(Comparator.comparingInt(Sentence::getPosition));
+        return merged;
     }
 
     public void summarizeDirectory(final Path dir) throws IOException {

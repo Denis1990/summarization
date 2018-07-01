@@ -15,4 +15,5 @@ public class PropertyKey {
     public static final String STEMMER = "stemmer";
     public static final String NNKSTEMER = "nnk";
     public static final String LUCESTEMMER = "lucene";
+    public static final String SHOWTITLES = "showTitles";
 }

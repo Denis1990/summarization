@@ -144,7 +144,7 @@ public class Summarizer {
         LOG.info(String.format("========%s========", fileName));
 
         for (Sentence s : sentences) {
-            if (s.hasLessThanNWords(minWords)) continue;
+            if (s.hasLessThanNWords(minWords)) continue; // ignore sentence with less than minWords
             final int i = s.getPosition();
             /** Calculate Title Term weight */
             // use log functions to determine importance see paper B47
@@ -196,6 +196,7 @@ public class Summarizer {
                         continue;
                     }
 
+                    // don't count sentence with less than minWords
                     if (par.getFirstSentence().hasLessThanNWords(minWords)) {
                         j++;
                         continue;
@@ -220,7 +221,7 @@ public class Summarizer {
         }
 
         /** Sort based on that */
-        Collections.sort(sentences);
+        sentences.sort(Comparator.reverseOrder());
 
         /** Calculate the number of sentences we will keep based on compress ratio */
         int summarySents = (int)(size - (round(size * compress)));
@@ -235,6 +236,16 @@ public class Summarizer {
         List<Sentence> selectedSentences = sentences.subList(0, summarySents);
         selectedSentences.sort(Comparator.comparingInt(Sentence::getPosition));
 
+        boolean showTitles = Boolean.valueOf(conf.getOrDefault(PropertyKey.SHOWTITLES, "true"));
+        if (showTitles) {
+            // merge selectedSentences with titles collection
+            selectedSentences = merge(selectedSentences,
+                    sentences.stream()
+                            .filter(s -> s.isTitle() || s.isSubTitle())
+                            .sorted(Comparator.comparingInt(Sentence::getPosition))
+                            .collect(Collectors.toList())
+            );
+        }
         String summaryFileName = fileName.concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (Sentence s : selectedSentences) {

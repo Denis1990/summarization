@@ -4,7 +4,6 @@ import ptuxiaki.utils.SentenceUtils;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 public class Sentence implements Comparable<Sentence> {
     /**
@@ -165,16 +164,16 @@ public class Sentence implements Comparable<Sentence> {
         return titleTermWeight;
     }
 
+    /**
+     * Set the title term weight. Only if it a sentence.
+     * @param titleTermWeight
+     */
     public void setTitleTermWeight(double titleTermWeight) {
         this.titleTermWeight = titleTermWeight;
     }
 
     public void setSLWeight(final double c) {
-        if (sentenceLocationWeight == 0) {
-            sentenceLocationWeight = c;
-        } else {
-            sentenceLocationWeight *= c;
-        }
+        sentenceLocationWeight = c;
     }
 
     /**

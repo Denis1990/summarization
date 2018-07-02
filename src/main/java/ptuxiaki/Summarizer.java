@@ -216,9 +216,9 @@ public class Summarizer {
         /** Calculate combined weights value */
         sentences.forEach(s -> s.compositeWeight(wtt, wst, wsl));
 
-        for (Paragraph p : paragraphs) {
-            LOG.info(p.toString());
-        }
+        System.out.println(String.format("\t======================%s======================%n", fileName));
+        System.out.println("Extracted sentences: \n");
+        paragraphs.forEach(System.out::println);
 
         /** Sort based on that */
         sentences.sort(Comparator.reverseOrder());
@@ -257,6 +257,7 @@ public class Summarizer {
             }
         }
         System.out.println("New summary saved to: " + summaryFileName);
+        System.out.println();
     }
 
     /**

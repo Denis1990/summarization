@@ -1,6 +1,7 @@
 package ptuxiaki;
 
 
+import org.apache.commons.io.filefilter.HiddenFileFilter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import ptuxiaki.indexing.Indexer;
 import ptuxiaki.utils.PropertyKey;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -288,6 +290,7 @@ public class Summarizer {
         try {
             for (File f : dir.toFile().listFiles()) {
                 try {
+                    if (!f.isHidden()) continue;
                     summarizeFile(f.toString());
                 } catch (IOException e) {
                     e.printStackTrace();

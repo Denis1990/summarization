@@ -146,6 +146,7 @@ public class Summarizer {
         LOG.info(String.format("========%s========", fileName));
 
         for (Sentence s : sentences) {
+            if (s.isSubTitle() || s.isTitle()) continue;
             if (s.hasLessThanNWords(minWords)) continue; // ignore sentence with less than minWords
             final int i = s.getPosition();
             /** Calculate Title Term weight */
@@ -189,22 +190,13 @@ public class Summarizer {
             for (Paragraph par : paragraphs) {
                 final int p = par.getPositionInDocument();
                 final int sip = par.numberOfSentences();
-                // check if this paragraph has only one sentence
-                // and if is title or subtitle exclude it.
-                if (sip == 1) {
+                for (int spip = 0; spip < sip; spip++) {
                     if(par.getFirstSentence().isSubTitle() || par.getFirstSentence().isTitle()) {
                         // update j though in order to not loose the global order of the sentences list
                         j++;
                         continue;
                     }
 
-                    // don't count sentence with less than minWords
-                    if (par.getFirstSentence().hasLessThanNWords(minWords)) {
-                        j++;
-                        continue;
-                    }
-                }
-                for (int spip = 0; spip < sip; spip++) {
                     if (sentences.get(j).hasLessThanNWords(minWords)) {
                         j++;
                         continue;
@@ -241,12 +233,7 @@ public class Summarizer {
         boolean showTitles = Boolean.valueOf(conf.getOrDefault(PropertyKey.SHOWTITLES, "true"));
         if (showTitles) {
             // merge selectedSentences with titles collection
-            selectedSentences = merge(selectedSentences,
-                    sentences.stream()
-                            .filter(s -> s.isTitle() || s.isSubTitle())
-                            .sorted(Comparator.comparingInt(Sentence::getPosition))
-                            .collect(Collectors.toList())
-            );
+            selectedSentences = merge(selectedSentences, sentences);
         }
         String summaryFileName = fileName.concat("_summary");
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {

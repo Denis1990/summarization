@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
-<!--
-    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <charset>UTF-8</charset>
-            <pattern>Sentence - [%green%msg]%n%n</pattern>
-        </encoder>
-    </appender>
--->
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="SUMMARIZATION" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>log/summarization.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover. Make sure the path matches the one in the file element or else
              the rollover logs are placed in the working directory. -->
@@ -30,8 +27,24 @@
         </encoder>
     </appender>
 
+    <appender name="SENTENCES" class="ch.qos.logback.core.FileAppender">
+        <file>log/sentences.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <charset>UTF-8</charset>
+            <!-- %d %-4relative [%thread] %-5level %logger{35} - -->
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="SUMMARIZATION"/>
+    </root>
     <root level="DEBUG">
-        <appender-ref ref="consoleAppender" />
-        <appender-ref ref="FILE"/>
+        <appender-ref ref="SENTENCES"/>
     </root>
 </configuration>

@@ -1,7 +1,6 @@
 package ptuxiaki;
 
 
-import org.apache.commons.io.filefilter.HiddenFileFilter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +13,6 @@ import ptuxiaki.indexing.Indexer;
 import ptuxiaki.utils.PropertyKey;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -210,9 +208,9 @@ public class Summarizer {
         /** Calculate combined weights value */
         sentences.forEach(s -> s.compositeWeight(wtt, wst, wsl));
 
-        System.out.println(String.format("\t======================%s======================%n", fileName));
-        System.out.println("Extracted sentences: \n");
-        paragraphs.forEach(System.out::println);
+        LOG.debug(String.format("\t======================%s======================%n", fileName));
+        LOG.debug("Extracted sentences: \n");
+        paragraphs.forEach(p -> LOG.debug(p.toString()));
 
         /** Sort based on that */
         sentences.sort(Comparator.reverseOrder());
@@ -235,7 +233,10 @@ public class Summarizer {
             // merge selectedSentences with titles collection
             selectedSentences = merge(selectedSentences, sentences);
         }
-        String summaryFileName = fileName.concat("_summary");
+        String summaryFileName = fileName.concat("_summary")
+                .concat("_" + conf.stemmerClass())
+                .concat("_" + conf.sentenceWeight())
+                .concat("_" + conf.paragraphWeight());
         try(FileOutputStream fos = new FileOutputStream(SUMMARY_DIR.toString() + File.separatorChar + summaryFileName)) {
             for (Sentence s : selectedSentences) {
                 fos.write(s.getText()
@@ -277,7 +278,7 @@ public class Summarizer {
         try {
             for (File f : dir.toFile().listFiles()) {
                 try {
-                    if (!f.isHidden()) continue;
+                    if (f.isHidden()) continue;
                     summarizeFile(f.toString());
                 } catch (IOException e) {
                     e.printStackTrace();

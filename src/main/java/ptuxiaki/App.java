@@ -37,8 +37,11 @@ public class App {
         Summarizer summarizer = new Summarizer();
 
         LOG.info(String.format("Running with properties: %s", conf));
+        LOG.debug(String.format("Running with properties: %s", conf));
 
         summarizer.summarizeDirectory(Paths.get(dir));
 
+        LOG.info("-------------------------------------End of run------------------------------------------%n");
+        LOG.debug("-------------------------------------End of run------------------------------------------%n");
     }
 }

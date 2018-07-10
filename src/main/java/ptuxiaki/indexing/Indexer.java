@@ -31,6 +31,24 @@ import java.util.*;
 import static java.lang.Math.log10;
 
 
+/**
+ * <p>The class responsible for indexing a collection of documents, using Apache Lucene library.
+ * <p>The class takes each file from the directory of document to index and it constructs a Lucene
+ * {@link Document} object consisting of four fields
+ * <ul>
+ *     <li>UUID</li>
+ *     <li>FILE_NAME</li>
+ *     <li>FILE_PATH</li>
+ *     <li>CONTENT</li>
+ * </ul>
+ * and then adds that object to index. The content extraction is achieved using apache Tika library.
+ *
+ * <p>Besides indexing the documents it also provides method to acquire the values stored in the
+ * index, such as tf and idf weights.
+ *
+ * <p>The index files generated is saved to a predefined directory which is $HOME/index, unless specified
+ * otherwise.
+ */
 public class Indexer {
     private static final Logger LOG = LoggerFactory.getLogger(Summarizer.class);
 
@@ -47,11 +65,27 @@ public class Indexer {
     private int docNum = 0;
 
     // for indexing
+    /**
+     * Configuration for indexWriter
+     */
     private IndexWriterConfig iwc;
+    /**
+     * The actual 'index' object where the information are stored
+     */
     private IndexWriter index;
+    /**
+     * Used to read and retrieve information from a lucene index
+     */
     private IndexReader reader;
 
+    /**
+     * For each document hold the sum of all its term frequency
+     */
     private long [] totalTermFreqDoc;
+
+    /**
+     *
+     */
     private boolean totalTermFreqFileExists;
 
     // for pdf content extraction
@@ -59,6 +93,11 @@ public class Indexer {
     private Tika tika;
 
 
+    /**
+     * This method is used to initialize and configure the indexWriter object.
+     * @param analyzer {@link GreekAnalyzer} if we are using lucene stemmer {@link MyGreekAnalyzer} otherwise
+     * @throws IOException
+     */
     private void setUp(Analyzer analyzer) throws IOException {
         INDEX_STORED_ANALYZED.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
         INDEX_STORED_ANALYZED.setStored(true);
@@ -142,11 +181,13 @@ public class Indexer {
 
     }
 
-    private void addDocument(final File file) throws IOException {
-        InputStream stream = null;
-        try {
-            Document doc = new Document();
-            stream = new FileInputStream(file);
+    /**
+     * Construct a {@link Document} object from the file content, name and path add it to index
+     * @param file A file in natural language
+     */
+    private void addDocument(final File file) {
+        Document doc = new Document();
+        try (InputStream stream = new FileInputStream(file)) {
             doc.add(new StringField(LuceneConstant.DOC_ID, UUID.randomUUID().toString(), Field.Store.NO));
             doc.add(new Field(LuceneConstant.CONTENTS, tika.parseToString(stream, metadata), INDEX_STORED_ANALYZED));
             doc.add(new Field(LuceneConstant.FILE_PATH, file.getPath(), INDEX_STORED_ANALYZED));
@@ -160,10 +201,6 @@ public class Indexer {
             }
         } catch (IOException | TikaException e) {
             e.printStackTrace();
-        } finally {
-            if (stream != null) {
-                stream.close();
-            }
         }
     }
 
@@ -174,10 +211,20 @@ public class Indexer {
         return reader != null;
     }
 
+    /**
+     * Default constructor. Use the default index directory to save index files
+     * @throws IOException
+     */
     public Indexer() throws IOException {
         this(DEFAULT_INDEX_DIR);
     }
 
+    /**
+     * Set the directory where the index files will be saved. Initialize and
+     * the indexer based on the stemmer we are using
+     * @param directory
+     * @throws IOException
+     */
     public Indexer(final String directory) throws IOException {
         this.indexDirectory = directory;
         if (Conf.instance().stemmerClass().equals(PropertyKey.NNKSTEMER)) {
@@ -192,6 +239,18 @@ public class Indexer {
         totalTermFreqFileExists = false;
     }
 
+    /**
+     * <p>Do the actual indexing.
+     * <p>Traverse the specified directory and for each file call {@link Indexer#addDocument(File)}.
+     * Avoid indexing hidden files or any other non text files such as .lock and .class files
+     *
+     * <p>After this method is called and returns successfully all the documents that were
+     * indexed and their information are stored inside the index files and can be retrieved by
+     * the program.
+     * @param directory where the document for indexing reside
+     * @return true if the indexing of the directory was successful.
+     * @throws IOException
+     */
     public boolean indexDirectory(String directory) throws IOException {
         File dir = new File(directory);
         System.out.printf("Indexing directory %s%n", dir.getName());
@@ -323,6 +382,12 @@ public class Indexer {
         return log10((double) docNum / (docFreq + 1));
     }
 
+    /**
+     * Calculate the tfIdf value for a sentence object.
+     * @param sentence the sentence to update
+     * @param file the document where the sentence exists
+     * @return
+     */
     public double assignSentenceWeight(final Sentence sentence, String file)  {
         double tfIdf = 0;
         LOG.info(String.format("sentence: %s tfIdf: %f", sentence, tfIdf));
@@ -336,30 +401,15 @@ public class Indexer {
         return tfIdf;
     }
 
-    /**
-     * @see org.apache.lucene.index.IndexWriter#commit()
-     */
-    public void commit() throws IOException {
-
-        index.commit();
-        docNum = index.numDocs();
-        index.close();
-        this.indexExists = true;
-        if (!totalTermFreqFileExists) {
-            computeSumTermFreqByDoc();
-        }
-    }
-
     public void closeReader() throws IOException {
         reader.close();
     }
 
-    public int numOfDocs() {
-        return this.docNum;
-    }
-
     /**
-     * For the demo.
+     * Print statistics about the index.
+     * For each document show each stemmed word contained in it
+     * and the document frequency it has as well as the term frequency.
+     * <p>If no indexing has taken place this method won't show something
      */
     public void printStatistics() throws IOException {
         if (!indexExists) {

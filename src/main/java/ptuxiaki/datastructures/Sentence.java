@@ -66,6 +66,11 @@ public class Sentence implements Comparable<Sentence> {
     private final int wordsCount;
 
     /**
+     * If this sentence is considered among the sentences for summarization
+     */
+    private boolean ignored;
+
+    /**
      * Construct a sentence with the given text.
      * This is considered the first sentence by default
      * @param text
@@ -113,6 +118,7 @@ public class Sentence implements Comparable<Sentence> {
         this.sentenceLocationWeight = -10.0;
         this.stemmedText = SentenceUtils.stemSentence(text);
         this.wordsCount = text.split("\\s+").length;
+        this.ignored = true;
     }
 
     public boolean isTitle() {
@@ -141,6 +147,7 @@ public class Sentence implements Comparable<Sentence> {
 
     public void setTermsWeight(double termsWeight) {
         this.termsWeight = termsWeight;
+        ignored = false;
     }
 
     /**
@@ -151,6 +158,7 @@ public class Sentence implements Comparable<Sentence> {
      */
     public void updateTermsWeight(double wsl) {
         termsWeight += (termsWeight * wsl);
+        ignored = false;
     }
 
     /**
@@ -175,10 +183,12 @@ public class Sentence implements Comparable<Sentence> {
      */
     public void setTitleTermWeight(double titleTermWeight) {
         this.titleTermWeight = titleTermWeight;
+        ignored = false;
     }
 
     public void setSLWeight(final double c) {
         sentenceLocationWeight = c;
+        ignored = false;
     }
 
     /**
@@ -186,6 +196,9 @@ public class Sentence implements Comparable<Sentence> {
      * @return True if the sentence has n or less words, False otherwise
      */
     public boolean hasLessThanNWords(int n) {
+        if (wordsCount <= n) {
+            ignored = true;
+        }
         return wordsCount <= n;
     }
 
@@ -199,9 +212,8 @@ public class Sentence implements Comparable<Sentence> {
 
     @Override
     public String toString() {
-        //FIXME: what happens if the sentenceWeight is less than -30.
         //For example when one of the coefficients are 0
-        final String s = sentenceWeight == -30 ? "X %-45.45s... | %s | %-2d | %-2d | %+2.3f | %+2.3f | %+2.3f | %+2.3f" : "%-47.47s... | %s | %-2d | %-2d | %+2.3f | %+2.3f | %+2.3f | %+2.3f";
+        final String s = ignored ? "X %-45.45s... | %s | %-2d | %-2d | %+2.3f | %+2.3f | %+2.3f | %+2.3f" : "%-47.47s... | %s | %-2d | %-2d | %+2.3f | %+2.3f | %+2.3f | %+2.3f";
         return String.format(s, text, type.toString(), parPosition, position, titleTermWeight, termsWeight, sentenceLocationWeight, sentenceWeight);
     }
 

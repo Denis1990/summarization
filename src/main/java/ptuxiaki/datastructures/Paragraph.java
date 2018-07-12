@@ -3,6 +3,12 @@ package ptuxiaki.datastructures;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A class that represents a paragraph from a document.
+ * It hold a list of {@link Sentence} objects as well
+ * as an integer value coresponding to its position 
+ * inside the document.
+ */
 public class Paragraph {
 
     /**
@@ -18,6 +24,9 @@ public class Paragraph {
      */
     private List<Sentence> sentences = new ArrayList<>();
 
+    /**
+     * Add s sentence into the paragraph.
+     */
     public boolean addSentence(Sentence s) {
         return sentences.add(s);
     }

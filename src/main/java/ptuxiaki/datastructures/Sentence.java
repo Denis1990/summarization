@@ -5,6 +5,11 @@ import ptuxiaki.utils.SentenceUtils;
 import java.util.Arrays;
 import java.util.List;
 
+
+/**
+ * A sentence representation that holds along with its text, the weights assigned to it by the different algorithms.
+ *
+ */
 public class Sentence implements Comparable<Sentence> {
     /**
      * Sentence text
@@ -194,6 +199,8 @@ public class Sentence implements Comparable<Sentence> {
 
     @Override
     public String toString() {
+        //FIXME: what happens if the sentenceWeight is less than -30.
+        //For example when one of the coefficients are 0
         final String s = sentenceWeight == -30 ? "X %-45.45s... | %s | %-2d | %-2d | %+2.3f | %+2.3f | %+2.3f | %+2.3f" : "%-47.47s... | %s | %-2d | %-2d | %+2.3f | %+2.3f | %+2.3f | %+2.3f";
         return String.format(s, text, type.toString(), parPosition, position, titleTermWeight, termsWeight, sentenceLocationWeight, sentenceWeight);
     }

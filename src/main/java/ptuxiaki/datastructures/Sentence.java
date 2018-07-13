@@ -8,7 +8,6 @@ import java.util.List;
 
 /**
  * A sentence representation that holds along with its text, the weights assigned to it by the different algorithms.
- *
  */
 public class Sentence implements Comparable<Sentence> {
     /**
@@ -167,7 +166,6 @@ public class Sentence implements Comparable<Sentence> {
      * @param wtt Title term coefficient
      * @param wst Term termsWeight coefficient
      * @param wsl Sentence location coefficient
-     * @return the total termsWeight according to equation (wtt * tt) + (wsl * sl) + (wst * st)
      */
     public void compositeWeight(double wtt, double wst, double wsl) {
         sentenceWeight = wtt * titleTermWeight + wst * termsWeight + wsl * sentenceLocationWeight;

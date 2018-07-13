@@ -231,7 +231,11 @@ public class Summarizer {
         boolean showTitles = Boolean.valueOf(conf.getOrDefault(PropertyKey.SHOWTITLES, "true"));
         if (showTitles) {
             // merge selectedSentences with titles collection
-            selectedSentences = merge(selectedSentences, sentences);
+            selectedSentences = merge(selectedSentences,
+                    sentences.stream()
+                            .filter(s -> s.isTitle() || s.isSubTitle())
+                            .sorted(Comparator.comparingInt(Sentence::getPosition))
+                            .collect(Collectors.toList()));
         }
         String summaryFileName = fileName.concat("_summary")
                 .concat("_" + conf.stemmerClass())

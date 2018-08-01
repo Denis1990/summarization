@@ -1,0 +1,9 @@
+node {
+    stage('Update source') {
+        checkout scm
+    }
+
+    stage('Build') {
+        sh 'mvn clean package'
+    }
+}

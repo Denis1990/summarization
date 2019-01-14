@@ -13,7 +13,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lucene.version>5.3.1</lucene.version>
-        <tika.version>1.16</tika.version>
+        <tika.version>1.20</tika.version>
         <main.class>ptuxiaki.App</main.class>
     </properties>
 
@@ -56,6 +56,82 @@
                 <exclusion>
                     <groupId>commons-logging</groupId>
                     <artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcmail-jdk15on</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15on</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.glassfish.jaxb</groupId>
+                    <artifactId>jaxb-runtime</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.cxf</groupId>
+                    <artifactId>cxf-rt-rs-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.opennlp</groupId>
+                    <artifactId>opennlp-tools</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.sis.storage</groupId>
+                    <artifactId>sis-netcdf</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.sis.core</groupId>
+                    <artifactId>sis-metadata</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.sis.core</groupId>
+                    <artifactId>sis-utility</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.healthmarketscience.jackcess</groupId>
+                    <artifactId>jackcess</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>edu.ucar</groupId>
+                    <artifactId>cdm</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>edu.ucar</groupId>
+                    <artifactId>httpservices</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>edu.ucar</groupId>
+                    <artifactId>netcdf4</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>edu.ucar</groupId>
+                    <artifactId>grib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.googlecode.mp4parser</groupId>
+                    <artifactId>isoparser</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpmime</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpcomponents-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpcomponents-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpcore</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

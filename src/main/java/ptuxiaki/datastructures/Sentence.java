@@ -219,7 +219,7 @@ public class Sentence implements Comparable<Sentence> {
     public int compareTo(Sentence s) {
         if (this.sentenceWeight < s.sentenceWeight) {
             return -1;
-        } else if (this.sentenceWeight < s.sentenceWeight) {
+        } else if (this.sentenceWeight == s.sentenceWeight) {
             return 1;
         } else {
             return 0;

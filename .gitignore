@@ -82,6 +82,17 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 
+# Eclipse stuff
+.classpath
+.settings
+.project
+
+# VS code section
+.vscode/
+
+# Gradle
+.gradle/
+
 # Windows shortcuts
 *.lnk
 dist/

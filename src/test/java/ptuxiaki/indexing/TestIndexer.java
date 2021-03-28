@@ -31,16 +31,16 @@ public class TestIndexer {
         // word βολτ exists in one documents, 1 time
         // doc1 has 10 terms so the tf should be 0,1
         for (int i = 0; i < fileNames.length; i++) {
-            tfs[i] = indexer.tf("κακοσ", fileNames[i]);
+            tfs[i] = indexer.tf("κακ", fileNames[i]);
         }
-        Assert.assertArrayEquals(tfs, new double [] { 0.1, 0, 0 }, 0.01);
+        Assert.assertArrayEquals(tfs, new double [] { 0.125, 0, 0 }, 0.01);
         // word βολτ exists in two documents, 1 time in each
         // doc1 has 10 terms and doc2 has 7 terms
         // so the tf should be 0,1 0,14 respectively
         for (int i = 0; i < fileNames.length; i++) {
             tfs[i] = indexer.tf("βολτ", fileNames[i]);
         }
-        Assert.assertArrayEquals(tfs, new double [] { 0.1, 0.14, 0 }, 0.01);
+        Assert.assertArrayEquals(tfs, new double [] { 0.125, 0.14, 0 }, 0.01);
 
         double [] idfs = new double[fileNames.length];
         for (int i = 0; i < fileNames.length; i++) {

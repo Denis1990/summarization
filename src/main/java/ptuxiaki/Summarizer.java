@@ -15,7 +15,7 @@ import ptuxiaki.utils.PropertyKey;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -246,7 +246,7 @@ public class Summarizer {
                 fos.write(s.getText()
                         .trim()
                         .concat(System.lineSeparator())
-                        .getBytes(Charset.forName("UTF-8"))
+                        .getBytes(StandardCharsets.UTF_8)
                 );
             }
         }

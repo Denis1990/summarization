@@ -1,5 +1,6 @@
 package ptuxiaki.datastructures;
 
+import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import ptuxiaki.utils.PropertyKey;
 
 import java.io.FileInputStream;
@@ -28,6 +29,15 @@ public class Conf {
             System.exit(0);
         }
     }
+    private Conf(Properties p) {
+        try {
+            props = new Properties();
+            props = p;
+        } catch (NullPointerException npe) {
+            System.err.println("Can't load properties for program to run. Exiting");
+            System.exit(0);
+        }
+    }
 
     private Conf(final String propsFile) {
         try {
@@ -44,6 +54,13 @@ public class Conf {
     public static Conf instance() {
         if (conf == null) {
             conf = new Conf();
+        }
+        return conf;
+    }
+
+    public static Conf instance(Properties p) {
+        if (conf == null) {
+            conf = new Conf(p);
         }
         return conf;
     }

@@ -17,7 +17,7 @@
         <!-- copy its dependencies -->
         <fileSet>
             <directory>target/dependency</directory>
-            <outputDirectory>dependency</outputDirectory>
+            <outputDirectory>lib</outputDirectory>
             <includes>
                 <include>*.jar</include>
             </includes>

@@ -220,7 +220,6 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <mainClass>${main.class}</mainClass>
-                            <classpathPrefix>dependency</classpathPrefix>
                         </manifest>
                     </archive>
                 </configuration>

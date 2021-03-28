@@ -9,7 +9,7 @@
         <!-- copy the executable jar -->
         <fileSet>
             <directory>target</directory>
-            <outputDirectory>${file.separator}</outputDirectory>
+            <outputDirectory>lib</outputDirectory>
             <includes>
                 <include>*.jar</include>
             </includes>

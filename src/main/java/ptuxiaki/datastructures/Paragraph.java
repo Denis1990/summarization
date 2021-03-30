@@ -58,12 +58,23 @@ public class Paragraph {
     }
 
     /**
-     * Return the sentences that have more than minWords
+     * Return the sentences of the paragraph
      * @return
      */
     public List<Sentence> getAllSentences() {
         return sentences.stream().filter(s -> !s.isTitle() && !s.isSubTitle()).collect(Collectors.toList());
     }
+
+    /**
+     * Return the sentences that are titles or subtitles of a paragraph.
+     * This is the case of a paragraph with only one sentence, either a
+     * title or a subtitle.
+     * @return
+     */
+    public List<Sentence> getTitlesAndSubtitles() {
+        return sentences.stream().filter(s -> s.isTitle() || s.isSubTitle()).collect(Collectors.toList());
+    }
+
 
     @Override
     public String toString() {

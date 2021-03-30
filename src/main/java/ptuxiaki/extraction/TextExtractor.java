@@ -56,15 +56,19 @@ public class TextExtractor {
             // go back at most 4 steps
             // find the position of dot char
             int idx = end;
-            while (steps-- > 0 && text.charAt(idx--) != '.')
-                ;
+            while (steps-- > 0 && text.charAt(idx) != '.') {
+                idx--;
+            }
             // find the position of the first whitespace char before idx
             int wIdx = idx;
-            while (wIdx > 0 && !Character.isWhitespace(text.charAt(wIdx--)))
-                ;
+            while (wIdx > 0 && !Character.isWhitespace(text.charAt(wIdx))) {
+                wIdx--;
+            }
 
             // check if it is a small word like υπ. Δρ. κ. etc
-            if (idx - wIdx <= 4) {
+            String substrt = text.substring(wIdx, idx).trim();
+            if (substrt.length() <= 4 && !substrt.matches(".*\\d.") &&
+                    !(substrt.contains("του") || substrt.contains("των") || substrt.contains("τις") )) {
                 end = iterator.next();
                 steps = 4;
                 continue;

@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.log10;
@@ -101,15 +102,20 @@ public class Summarizer {
             sentences.addAll(p.getAllSentences());
         }
 
+        List<Sentence> titlesSubtitles= new ArrayList<>();
+        for (Paragraph p : paragraphs) {
+            titlesSubtitles.addAll(p.getTitlesAndSubtitles());
+        }
+
         // Construct the global title dictionary.
         // Constructing a Set of Pair objects. Each Pair object  is a <word, enum> denoting if the word
         // is from a title or from a medially title. The word is stored as a stem of the original
         Set<Pair<String, SentenceType>> titleWords = new HashSet<>();
-        sentences.stream().filter(s -> s.isSubTitle() || s.isTitle()).collect(Collectors.toList()).forEach(s -> {
-            for (String str : s.getStemmedTerms()) {
-                titleWords.add(Pair.of(str, s.isTitle() ? SentenceType.TITLE : SentenceType.SUBTITLE));
-            }
-        });
+        titlesSubtitles.forEach(s -> {
+                    for (String str : s.getStemmedTerms()) {
+                        titleWords.add(Pair.of(str, s.isTitle() ? SentenceType.TITLE : SentenceType.SUBTITLE));
+                    }
+                });
 
         // if isf algorithm is picked for sentence weight, then we need to count
         // how many times a term is present in each sentence.
@@ -195,7 +201,6 @@ public class Summarizer {
                     }
 
                     if (sentences.get(j).hasLessThanNWords(minWords)) {
-                        j++;
                         continue;
                     }
                     sentences.get(j).setSLWeight(((double) (sp - p) / sp) * ((double) (sip - spip) / sip));
@@ -230,11 +235,7 @@ public class Summarizer {
         boolean showTitles = Boolean.valueOf(conf.getOrDefault(PropertyKey.SHOWTITLES, "true"));
         if (showTitles) {
             // merge selectedSentences with titles collection
-            selectedSentences = merge(selectedSentences,
-                    sentences.stream()
-                            .filter(s -> s.isTitle() || s.isSubTitle())
-                            .sorted(Comparator.comparingInt(Sentence::getPosition))
-                            .collect(Collectors.toList()));
+            selectedSentences = merge(selectedSentences, titlesSubtitles);
         }
         String summaryFileName = fileName.concat("_summary")
                 .concat("_" + conf.stemmerClass())

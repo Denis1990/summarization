@@ -2,6 +2,7 @@ package ptuxiaki.datastructures;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A class that represents a paragraph from a document.
@@ -61,7 +62,7 @@ public class Paragraph {
      * @return
      */
     public List<Sentence> getAllSentences() {
-        return sentences;
+        return sentences.stream().filter(s -> !s.isTitle() && !s.isSubTitle()).collect(Collectors.toList());
     }
 
     @Override

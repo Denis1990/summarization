@@ -191,7 +191,6 @@ public class Summarizer {
                 for (int spip = 0; spip < sip; spip++) {
                     if(par.getFirstSentence().isSubTitle() || par.getFirstSentence().isTitle()) {
                         // update j though in order to not loose the global order of the sentences list
-                        j++;
                         continue;
                     }
 
@@ -219,8 +218,8 @@ public class Summarizer {
         int summarySents = (int)(size - (round(size * compress)));
         // If the document has too few sentences by default
         // write the 3 most important
-        if (summarySents < 3 && size > 3) {
-            summarySents = 3;
+        if (summarySents < 2 && size > 2) {
+            summarySents = 2;
         }
 
         // take a sublist of the sentences list and sort it by sentence position. this way we have the most
